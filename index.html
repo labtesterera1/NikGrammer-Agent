@@ -1094,6 +1094,10 @@
 
 <div id="main">
   <div id="sidebar">
+    <button class="nav-btn" id="nav-profile" onclick="switchTab('profile')">
+      <span class="icon">👤</span> Profile
+    </button>
+
     <div class="sidebar-label">Tabs</div>
     <button class="nav-btn active" id="nav-chat" onclick="switchTab('chat')">
       <span class="icon">C</span> Chat Agent
@@ -1105,7 +1109,13 @@
       <span class="icon">N</span> Daily News
     </button>
     <button class="nav-btn" id="nav-translator" onclick="switchTab('translator')">
-      <span class="icon">T</span> Translator
+      <span class="icon">T</span> EN → Hindi
+    </button>
+    <button class="nav-btn" id="nav-hi2en" onclick="switchTab('hi2en')">
+      <span class="icon">H</span> Hindi → EN
+    </button>
+    <button class="nav-btn" id="nav-filereader" onclick="switchTab('filereader')">
+      <span class="icon">📄</span> File Reader
     </button>
     <button class="nav-btn" id="nav-notes" onclick="switchTab('notes')">
       <span class="icon">O</span> Notes
@@ -1115,9 +1125,6 @@
     </button>
     <button class="nav-btn" id="nav-drawing" onclick="switchTab('drawing')">
       <span class="icon">D</span> Drawing
-    </button>
-    <button class="nav-btn" id="nav-profile" onclick="switchTab('profile')">
-      <span class="icon">👤</span> Profile
     </button>
 
     <div class="sidebar-label" id="qa-label">Quick Actions</div>
@@ -1271,6 +1278,50 @@ New voice tools:
           <button class="filter-chip" onclick="filterNews('toi', this)">Times of India</button>
           <button class="filter-chip" onclick="filterNews('ht', this)">Hindustan</button>
           <button class="filter-chip" onclick="filterNews('practice', this)">Practice</button>
+          <button class="filter-chip" onclick="showNewsSearch('youtube', this)">YouTube</button>
+          <button class="filter-chip" onclick="showNewsSearch('google', this)">Google</button>
+        </div>
+
+        <!-- YouTube Search Panel -->
+        <div id="youtube-search-panel" style="display:none;background:#fff;border:1px solid #e8e8e4;border-radius:12px;padding:16px;margin-bottom:16px;">
+          <h3 style="font-size:14px;font-weight:500;margin-bottom:6px;">YouTube — English Learning Videos</h3>
+          <p style="font-size:12px;color:#666;margin-bottom:12px;">Search YouTube for grammar lessons, pronunciation, vocabulary, and more.</p>
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+            <input type="text" id="yt-search-input" placeholder="e.g. English grammar tenses, spoken English..." style="flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;outline:none;min-width:200px;" onkeydown="if(event.key==='Enter')searchYouTube()" />
+            <button class="primary-btn" onclick="searchYouTube()" style="white-space:nowrap;">Search</button>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+            <button class="news-quick-chip" onclick="setYTSearch('English grammar lessons for beginners')">Grammar Basics</button>
+            <button class="news-quick-chip" onclick="setYTSearch('spoken English practice Hindi')">Spoken English</button>
+            <button class="news-quick-chip" onclick="setYTSearch('English tenses explained Hindi')">Tenses in Hindi</button>
+            <button class="news-quick-chip" onclick="setYTSearch('daily English vocabulary')">Vocabulary</button>
+            <button class="news-quick-chip" onclick="setYTSearch('English pronunciation practice')">Pronunciation</button>
+            <button class="news-quick-chip" onclick="setYTSearch('IELTS English speaking tips')">IELTS Tips</button>
+          </div>
+          <div id="yt-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;"></div>
+        </div>
+
+        <!-- Google Search Panel -->
+        <div id="google-search-panel" style="display:none;background:#fff;border:1px solid #e8e8e4;border-radius:12px;padding:16px;margin-bottom:16px;">
+          <h3 style="font-size:14px;font-weight:500;margin-bottom:6px;">Google — Search Grammar Resources</h3>
+          <p style="font-size:12px;color:#666;margin-bottom:12px;">Search Google for articles, exercises, rules, and any English topic.</p>
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+            <input type="text" id="google-search-input" placeholder="e.g. when to use present perfect tense..." style="flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;outline:none;min-width:200px;" onkeydown="if(event.key==='Enter')searchGoogle()" />
+            <button class="primary-btn" onclick="searchGoogle()" style="white-space:nowrap;">Search</button>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+            <button class="news-quick-chip" onclick="setGoogleSearch('English grammar rules PDF')">Grammar PDF</button>
+            <button class="news-quick-chip" onclick="setGoogleSearch('common English mistakes Indians make')">Common Mistakes</button>
+            <button class="news-quick-chip" onclick="setGoogleSearch('English articles a an the exercises')">Articles Exercises</button>
+            <button class="news-quick-chip" onclick="setGoogleSearch('English prepositions list with examples')">Prepositions</button>
+            <button class="news-quick-chip" onclick="setGoogleSearch('British Council English grammar')">British Council</button>
+          </div>
+          <div style="font-size:12px;color:#888;padding:10px;background:#f5f5f0;border-radius:8px;">
+            Google will open in your browser with the search results. Click "Open Search" to proceed.
+          </div>
+          <div id="google-quick-open" style="margin-top:10px;display:none;">
+            <button class="primary-btn" id="google-open-btn" onclick="executeGoogleSearch()">Open Google Search →</button>
+          </div>
         </div>
         <div class="news-section-title">Today's Top Picks</div>
         <div class="news-grid" id="news-grid"></div>
@@ -1284,7 +1335,7 @@ New voice tools:
           <p>Convert English news or text into Hindi with easy dynamic modes</p>
         </div>
       </div>
-      <div id="news-content">
+      <div id="translator-content" style="flex:1;overflow-y:auto;padding:20px;background:#f5f5f0;">
         <div class="news-translate-panel">
           <h3>Advanced Hindi Converter</h3>
           <p>Paste any headline, paragraph, article text, or short update here. Choose a dynamic mode for easy Hindi reading.</p>
@@ -1310,6 +1361,103 @@ New voice tools:
           </div>
           <div class="news-translate-output" id="news-translate-output">Hindi translation will appear here.</div>
         </div>
+      </div>
+    </div>
+
+    <div class="tab-page" id="tab-hi2en">
+      <div class="topbar">
+        <div>
+          <h1>Hindi → English Translator</h1>
+          <p>Type or paste Hindi text and get it translated to clear English</p>
+        </div>
+      </div>
+      <div id="hi2en-content" style="flex:1;overflow-y:auto;padding:20px;background:#f5f5f0;">
+        <div class="news-translate-panel">
+          <h3>Hindi to English Converter</h3>
+          <p>Paste Hindi text — news, notes, messages, or any content. Choose a mode and get a clear English translation.</p>
+          <div class="news-translate-toolbar">
+            <select id="hi2en-mode" class="news-mode-select">
+              <option value="simple">Simple English</option>
+              <option value="formal">Formal English</option>
+              <option value="natural">Natural / Conversational</option>
+              <option value="explain">Translate + Explain grammar</option>
+              <option value="bilingual">Hindi + English side by side</option>
+            </select>
+            <button class="news-quick-chip" onclick="setHi2EnExample('short')">Short text</button>
+            <button class="news-quick-chip" onclick="setHi2EnExample('news')">News headline</button>
+            <button class="news-quick-chip" onclick="setHi2EnExample('msg')">WhatsApp message</button>
+          </div>
+          <div class="news-status" id="hi2en-status">Mode: Simple English. Paste your Hindi text below.</div>
+          <textarea id="hi2en-input" class="news-translate-box" placeholder="यहाँ हिंदी टेक्स्ट पेस्ट करें...&#10;&#10;Example: आज मौसम बहुत अच्छा है और मैं बाहर जाना चाहता हूँ।"></textarea>
+          <div class="news-translate-actions">
+            <button class="news-action-btn primary" id="hi2en-btn" onclick="translateHindiToEnglish()">Translate to English</button>
+            <button class="news-action-btn" onclick="document.getElementById('hi2en-input').value='';document.getElementById('hi2en-output').textContent='English translation will appear here.'">Clear</button>
+            <button class="news-action-btn" onclick="navigator.clipboard.writeText(document.getElementById('hi2en-output').innerText)">Copy English</button>
+            <button class="news-action-btn" onclick="sendHi2EnToChat()">Send to Chat</button>
+          </div>
+          <div class="news-translate-output" id="hi2en-output">English translation will appear here.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-page" id="tab-filereader">
+      <div class="topbar">
+        <div>
+          <h1>File Reader</h1>
+          <p>Open PDF, Word, Excel, PowerPoint files and read them directly in this app</p>
+        </div>
+      </div>
+      <div class="notes-shell" style="grid-template-columns:0.7fr 1.3fr;height:100%;">
+
+        <!-- Left: File Selector -->
+        <div class="notes-card" style="display:flex;flex-direction:column;gap:12px;">
+          <h3>Select File</h3>
+          <p style="font-size:12px;color:#666;">Supported: PDF, .txt, .docx (text), .xlsx (text), .ppt (text), images (PNG/JPG)</p>
+
+          <div style="border:2px dashed #ddd;border-radius:10px;padding:20px;text-align:center;cursor:pointer;background:#fafaf7;" onclick="document.getElementById('file-reader-input').click()">
+            <div style="font-size:28px;margin-bottom:8px;">📂</div>
+            <div style="font-size:13px;color:#666;">Click to select a file</div>
+            <div style="font-size:11px;color:#bbb;margin-top:4px;">or drag & drop here</div>
+          </div>
+          <input type="file" id="file-reader-input" accept=".pdf,.txt,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.gif,.webp,.md,.csv" style="display:none" onchange="openFileForReading(event)" />
+
+          <div id="file-reader-info" style="display:none;background:#f5f5f0;border-radius:8px;padding:10px;font-size:12px;color:#444;line-height:1.6;"></div>
+
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="primary-btn" onclick="document.getElementById('file-reader-input').click()">Open File</button>
+            <button class="secondary-btn" onclick="clearFileReader()">Clear</button>
+            <button class="secondary-btn" id="ask-ai-btn" onclick="askAIAboutFile()" style="display:none;">Ask AI About This File</button>
+            <button class="secondary-btn" id="summarize-btn" onclick="summarizeFile()" style="display:none;">Summarize with AI</button>
+          </div>
+
+          <div style="margin-top:8px;">
+            <div style="font-size:11px;color:#aaa;margin-bottom:6px;">Recent Files</div>
+            <div id="recent-files-list" style="display:flex;flex-direction:column;gap:4px;"></div>
+          </div>
+        </div>
+
+        <!-- Right: Reading Area -->
+        <div class="notes-card" style="display:flex;flex-direction:column;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+            <h3 id="file-reader-title" style="font-size:14px;">Reading Area</h3>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <select id="reader-font-size" onchange="updateReaderFont()" style="padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;">
+                <option value="13">Small</option>
+                <option value="15" selected>Medium</option>
+                <option value="17">Large</option>
+                <option value="20">X-Large</option>
+              </select>
+              <button class="secondary-btn" style="font-size:12px;padding:5px 10px;" onclick="toggleReaderTheme()">Dark Mode</button>
+              <button class="secondary-btn" style="font-size:12px;padding:5px 10px;" onclick="printFileContent()">Print</button>
+              <button class="secondary-btn" style="font-size:12px;padding:5px 10px;" onclick="copyFileContent()">Copy All</button>
+            </div>
+          </div>
+          <div id="file-reader-content" style="flex:1;overflow-y:auto;padding:12px;border:1px solid #e8e8e4;border-radius:10px;background:#fff;font-size:15px;line-height:1.8;white-space:pre-wrap;color:#1a1a1a;min-height:300px;">
+            <span style="color:#ccc;font-style:italic;">Select a file from the left panel to start reading...</span>
+          </div>
+          <div id="ai-file-response" style="display:none;margin-top:10px;padding:12px;background:#f0f7ff;border:1px solid #c9dfff;border-radius:10px;font-size:13px;line-height:1.7;color:#1a1a2e;white-space:pre-wrap;max-height:200px;overflow-y:auto;"></div>
+        </div>
+
       </div>
     </div>
 
@@ -1795,8 +1943,14 @@ Extra rule:
 
   function filterNews(filter, btn) {
     currentFilter = filter;
-    document.querySelectorAll(".filter-chip").forEach((c) => c.classList.remove("active"));
-    btn.classList.add("active");
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('youtube-search-panel').style.display = 'none';
+    document.getElementById('google-search-panel').style.display = 'none';
+    const grid = document.getElementById('news-grid');
+    if (grid) grid.style.display = 'grid';
+    const title = document.querySelector('.news-section-title');
+    if (title) title.style.display = '';
     renderNews(filter);
   }
 
@@ -3084,6 +3238,295 @@ Paragraph to correct:
     if (state) status.classList.add(state);
   }
 
+  // ======= YOUTUBE SEARCH =======
+  let currentYTQuery = '';
+  let currentGoogleQuery = '';
+
+  function showNewsSearch(type, btn) {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('youtube-search-panel').style.display = type === 'youtube' ? 'block' : 'none';
+    document.getElementById('google-search-panel').style.display = type === 'google' ? 'block' : 'none';
+    document.getElementById('news-grid').style.display = 'none';
+    document.querySelector('.news-section-title') && (document.querySelector('.news-section-title').style.display = 'none');
+  }
+
+  function filterNews(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('youtube-search-panel').style.display = 'none';
+    document.getElementById('google-search-panel').style.display = 'none';
+    document.getElementById('news-grid').style.display = 'grid';
+    const title = document.querySelector('.news-section-title');
+    if (title) title.style.display = '';
+    renderNews(filter);
+  }
+
+  function setYTSearch(query) {
+    document.getElementById('yt-search-input').value = query;
+    searchYouTube();
+  }
+
+  function searchYouTube() {
+    const query = document.getElementById('yt-search-input').value.trim();
+    if (!query) return;
+    currentYTQuery = query;
+    const results = document.getElementById('yt-results');
+    const encoded = encodeURIComponent(query);
+    const suggestions = [
+      { title: 'Search on YouTube', desc: `Find videos for: "${query}"`, url: `https://www.youtube.com/results?search_query=${encoded}` },
+      { title: 'English Grammar Videos', desc: `"${query}" + grammar lessons`, url: `https://www.youtube.com/results?search_query=${encoded}+english+grammar` },
+      { title: 'Hindi Explanation Videos', desc: `"${query}" explained in Hindi`, url: `https://www.youtube.com/results?search_query=${encoded}+hindi+mein+samjhao` },
+      { title: 'BBC Learning English', desc: 'Official BBC English learning channel', url: 'https://www.youtube.com/@bbclearningenglish' },
+      { title: 'Spoken English Guru', desc: 'Popular Hindi-medium English channel', url: 'https://www.youtube.com/@spokenenglishguru' },
+      { title: 'English with Lucy', desc: 'Clear British English lessons', url: 'https://www.youtube.com/@EnglishwithLucy' },
+    ];
+    results.innerHTML = suggestions.map(s => `
+      <div class="news-card" onclick="openLink('${s.url}')" style="cursor:pointer;">
+        <span class="news-tag tag-practice">YouTube</span>
+        <h3 style="font-size:13px;">${s.title}</h3>
+        <p style="font-size:12px;">${s.desc}</p>
+        <div class="news-card-footer">
+          <span class="news-source">youtube.com</span>
+          <button class="news-link" onclick="event.stopPropagation();openLink('${s.url}')">Open →</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function setGoogleSearch(query) {
+    document.getElementById('google-search-input').value = query;
+    currentGoogleQuery = query;
+    document.getElementById('google-quick-open').style.display = 'block';
+  }
+
+  function searchGoogle() {
+    const query = document.getElementById('google-search-input').value.trim();
+    if (!query) return;
+    currentGoogleQuery = query;
+    document.getElementById('google-quick-open').style.display = 'block';
+    executeGoogleSearch();
+  }
+
+  function executeGoogleSearch() {
+    const query = document.getElementById('google-search-input').value.trim() || currentGoogleQuery;
+    if (!query) return;
+    openLink('https://www.google.com/search?q=' + encodeURIComponent(query + ' english grammar'));
+  }
+
+  // ======= HINDI TO ENGLISH TRANSLATOR =======
+  function setHi2EnExample(type) {
+    const examples = {
+      short: 'आज मौसम बहुत अच्छा है और मैं बाहर जाना चाहता हूँ।',
+      news: 'भारत सरकार ने नई शिक्षा नीति की घोषणा की जिससे लाखों छात्रों को फायदा होगा।',
+      msg: 'भाई, कल मीटिंग है क्या? मुझे नहीं पता था। जल्दी बताओ यार।'
+    };
+    document.getElementById('hi2en-input').value = examples[type] || '';
+  }
+
+  async function translateHindiToEnglish() {
+    const text = document.getElementById('hi2en-input').value.trim();
+    const output = document.getElementById('hi2en-output');
+    const btn = document.getElementById('hi2en-btn');
+    const mode = document.getElementById('hi2en-mode').value;
+
+    if (!text) { output.textContent = 'Please paste some Hindi text first.'; return; }
+    if (!apiKey) { output.textContent = 'Please set your Groq API key first.'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Translating...';
+    output.textContent = 'Translating Hindi to English...';
+
+    const modeInstr = {
+      simple: 'Translate the Hindi text into simple, clear English that is easy to understand.',
+      formal: 'Translate the Hindi text into formal, professional English suitable for official use.',
+      natural: 'Translate the Hindi text into natural, conversational English as a native speaker would say it.',
+      explain: 'Translate the Hindi text into English, then explain any key grammar points or vocabulary in the translation.',
+      bilingual: 'Show the original Hindi line by line, then the English translation below each line.'
+    };
+
+    try {
+      const reply = await callGroq([
+        { role: 'system', content: `You are an expert Hindi to English translator. Rules: Translate accurately and naturally. Preserve the original meaning. For conversational text, use natural English. For formal text, use proper grammar. Instruction: ${modeInstr[mode]}` },
+        { role: 'user', content: `Translate this Hindi text to English:\n\n${text}` }
+      ], 1500);
+      output.textContent = reply;
+    } catch(e) {
+      output.textContent = 'Error: ' + e.message;
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Translate to English';
+  }
+
+  function sendHi2EnToChat() {
+    const text = document.getElementById('hi2en-input').value.trim();
+    if (!text) return;
+    switchTab('chat');
+    document.getElementById('inp').value = `Please translate this Hindi text to English and explain it:\n\n${text}`;
+    autoResize(document.getElementById('inp'));
+    document.getElementById('inp').focus();
+  }
+
+  // ======= FILE READER =======
+  let readerDarkMode = false;
+  let fileReaderContent = '';
+  let recentFiles = JSON.parse(localStorage.getItem('grammar_recent_files') || '[]');
+
+  function renderRecentFiles() {
+    const list = document.getElementById('recent-files-list');
+    if (!list) return;
+    if (!recentFiles.length) { list.innerHTML = '<div style="font-size:11px;color:#bbb;">No recent files</div>'; return; }
+    list.innerHTML = recentFiles.slice(0, 5).map(f => `
+      <div style="font-size:11px;color:#555;padding:5px 8px;background:#f5f5f0;border-radius:6px;display:flex;align-items:center;gap:6px;">
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(f.name)}</span>
+        <span style="color:#aaa;flex-shrink:0;">${f.date}</span>
+      </div>`).join('');
+  }
+
+  async function openFileForReading(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    document.getElementById('file-reader-title').textContent = file.name;
+    document.getElementById('file-reader-content').innerHTML = '<span style="color:#aaa;font-style:italic;">Loading file...</span>';
+    document.getElementById('file-reader-info').style.display = 'block';
+    document.getElementById('file-reader-info').textContent = `File: ${file.name}\nSize: ${Math.round(file.size/1024)} KB\nType: ${file.type || 'document'}`;
+    document.getElementById('ask-ai-btn').style.display = 'block';
+    document.getElementById('summarize-btn').style.display = 'block';
+    document.getElementById('ai-file-response').style.display = 'none';
+
+    const ext = file.name.split('.').pop().toLowerCase();
+
+    // Save to recent
+    recentFiles = recentFiles.filter(f => f.name !== file.name);
+    recentFiles.unshift({ name: file.name, date: new Date().toLocaleDateString('en-IN') });
+    if (recentFiles.length > 5) recentFiles.pop();
+    localStorage.setItem('grammar_recent_files', JSON.stringify(recentFiles));
+    renderRecentFiles();
+
+    try {
+      if (['png','jpg','jpeg','gif','webp'].includes(ext)) {
+        // Image — show as image
+        const reader = new FileReader();
+        reader.onload = e => {
+          fileReaderContent = '[Image file]';
+          document.getElementById('file-reader-content').innerHTML = `<img src="${e.target.result}" style="max-width:100%;border-radius:8px;" />`;
+        };
+        reader.readAsDataURL(file);
+      } else if (['txt','md','csv'].includes(ext)) {
+        // Plain text
+        const text = await file.text();
+        fileReaderContent = text;
+        document.getElementById('file-reader-content').textContent = text;
+      } else if (ext === 'pdf') {
+        // PDF - read as text via FileReader
+        document.getElementById('file-reader-content').innerHTML = `
+          <div style="padding:20px;text-align:center;">
+            <div style="font-size:40px;margin-bottom:12px;">📄</div>
+            <div style="font-size:14px;font-weight:500;margin-bottom:8px;">${escapeHtml(file.name)}</div>
+            <div style="font-size:12px;color:#666;margin-bottom:16px;">PDF files open best in a PDF viewer. Click below to open in your system viewer, or use "Ask AI" to ask questions about it after uploading.</div>
+            <button class="primary-btn" onclick="openPdfInViewer()">Open in PDF Viewer</button>
+          </div>`;
+        // Store object URL for PDF viewer
+        window._currentPdfFile = file;
+        fileReaderContent = `[PDF: ${file.name}]`;
+      } else if (['doc','docx','xls','xlsx','ppt','pptx'].includes(ext)) {
+        // Office files — read as text (basic)
+        const text = await file.text();
+        // Strip XML/binary garbage, show readable parts
+        const cleaned = text.replace(/<[^>]*>/g, ' ').replace(/[^\x20-\x7E\u0900-\u097F\n\r\t]/g, '').replace(/\s{3,}/g, '\n\n').trim().slice(0, 50000);
+        fileReaderContent = cleaned;
+        if (cleaned.length > 100) {
+          document.getElementById('file-reader-content').textContent = cleaned;
+        } else {
+          document.getElementById('file-reader-content').innerHTML = `
+            <div style="padding:20px;text-align:center;">
+              <div style="font-size:40px;margin-bottom:12px;">📊</div>
+              <div style="font-size:14px;font-weight:500;margin-bottom:8px;">${escapeHtml(file.name)}</div>
+              <div style="font-size:12px;color:#666;margin-bottom:16px;">This Office file format needs Microsoft Office or Google Docs to display properly. For best results, save the file as .txt or .csv first, then open here. Or use "Ask AI" for help.</div>
+            </div>`;
+        }
+      } else {
+        const text = await file.text();
+        fileReaderContent = text;
+        document.getElementById('file-reader-content').textContent = text;
+      }
+    } catch(e) {
+      document.getElementById('file-reader-content').textContent = 'Could not read this file: ' + e.message;
+    }
+    event.target.value = '';
+  }
+
+  function openPdfInViewer() {
+    if (!window._currentPdfFile) return;
+    const url = URL.createObjectURL(window._currentPdfFile);
+    openLink(url);
+  }
+
+  function clearFileReader() {
+    document.getElementById('file-reader-title').textContent = 'Reading Area';
+    document.getElementById('file-reader-content').innerHTML = '<span style="color:#ccc;font-style:italic;">Select a file from the left panel to start reading...</span>';
+    document.getElementById('file-reader-info').style.display = 'none';
+    document.getElementById('ask-ai-btn').style.display = 'none';
+    document.getElementById('summarize-btn').style.display = 'none';
+    document.getElementById('ai-file-response').style.display = 'none';
+    document.getElementById('file-reader-input').value = '';
+    fileReaderContent = '';
+  }
+
+  function updateReaderFont() {
+    const size = document.getElementById('reader-font-size').value;
+    document.getElementById('file-reader-content').style.fontSize = size + 'px';
+  }
+
+  function toggleReaderTheme() {
+    readerDarkMode = !readerDarkMode;
+    const content = document.getElementById('file-reader-content');
+    content.style.background = readerDarkMode ? '#1a1a2e' : '#fff';
+    content.style.color = readerDarkMode ? '#e8e8e4' : '#1a1a1a';
+  }
+
+  function printFileContent() {
+    const content = document.getElementById('file-reader-content').innerText;
+    const w = window.open('', '_blank');
+    w.document.write(`<pre style="font-family:sans-serif;font-size:14px;line-height:1.7;padding:20px;">${content}</pre>`);
+    w.print();
+  }
+
+  function copyFileContent() {
+    const content = document.getElementById('file-reader-content').innerText;
+    navigator.clipboard.writeText(content);
+  }
+
+  async function askAIAboutFile() {
+    if (!fileReaderContent || !apiKey) { alert('Please open a file and set your API key first.'); return; }
+    const question = prompt('What do you want to ask about this file?');
+    if (!question) return;
+    await queryFileWithAI(question);
+  }
+
+  async function summarizeFile() {
+    if (!fileReaderContent || !apiKey) { alert('Please open a file and set your API key first.'); return; }
+    await queryFileWithAI('Please summarize this document in simple English. Highlight the key points.');
+  }
+
+  async function queryFileWithAI(question) {
+    const aiBox = document.getElementById('ai-file-response');
+    aiBox.style.display = 'block';
+    aiBox.textContent = 'AI is reading the file...';
+    const preview = fileReaderContent.slice(0, 6000);
+    try {
+      const reply = await callGroq([
+        { role: 'system', content: 'You are a helpful reading assistant. The user has opened a file and wants help understanding it. Answer clearly and concisely.' },
+        { role: 'user', content: `Here is the file content:\n\n${preview}\n\n---\nQuestion: ${question}` }
+      ], 1500);
+      aiBox.textContent = reply;
+    } catch(e) {
+      aiBox.textContent = 'Error: ' + e.message;
+    }
+  }
+
   renderNews("all");
   initVoiceInput();
   initVoiceOutput();
@@ -3093,6 +3536,7 @@ Paragraph to correct:
   updateNewsModeHint();
   loadDailyNotes();
   renderNotesFiles();
+  renderRecentFiles();
   updateCalcDisplay();
   setCurrentTime();
   setDrawingMode("draw");
