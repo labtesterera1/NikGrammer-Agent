@@ -1126,6 +1126,9 @@
     <button class="nav-btn" id="nav-drawing" onclick="switchTab('drawing')">
       <span class="icon">D</span> Drawing
     </button>
+    <button class="nav-btn" id="nav-tense" onclick="switchTab('tense')">
+      <span class="icon">📝</span> Tense Exercise
+    </button>
 
     <div class="sidebar-label" id="qa-label">Quick Actions</div>
     <div class="chip-group" id="chips-en">
@@ -1740,7 +1743,267 @@ New voice tools:
   </div>
 </div>
 
+<!-- TENSE EXERCISE TAB -->
+<div class="tab-page" id="tab-tense" style="display:none;flex:1;flex-direction:column;overflow:hidden;background:#f5f5f0;">
+  <div class="topbar">
+    <div>
+      <h1>Tense Exercise</h1>
+      <p>Practice all tenses with exercises, build vocabulary, and read useful stories</p>
+    </div>
+  </div>
+
+  <!-- Sub-nav for 3 sections -->
+  <div style="display:flex;gap:0;border-bottom:1px solid #e8e8e4;background:#fff;flex-shrink:0;">
+    <button id="subnav-exercise" onclick="showTenseSection('exercise')" style="padding:10px 20px;border:none;border-bottom:2px solid #1a1a2e;background:transparent;font-size:13px;font-weight:500;color:#1a1a2e;cursor:pointer;">📝 Tense Exercise</button>
+    <button id="subnav-vocab" onclick="showTenseSection('vocab')" style="padding:10px 20px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:13px;color:#888;cursor:pointer;">📖 Vocabulary</button>
+    <button id="subnav-story" onclick="showTenseSection('story')" style="padding:10px 20px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:13px;color:#888;cursor:pointer;">📚 Story</button>
+  </div>
+
+  <!-- SECTION 1: TENSE EXERCISE -->
+  <div id="section-exercise" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Tense Selector -->
+    <div style="background:#fff;border:1px solid #e8e8e4;border-radius:12px;padding:16px;">
+      <div style="font-size:13px;font-weight:500;margin-bottom:12px;color:#444;">Select a Tense to Practice</div>
+      <div id="tense-btn-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;">
+        <!-- Tense buttons injected by JS -->
+      </div>
+    </div>
+
+    <!-- Selected tense + Generate -->
+    <div style="background:#fff;border:1px solid #e8e8e4;border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div id="selected-tense-label" style="font-size:14px;color:#1a1a2e;font-weight:500;flex:1;">No tense selected yet — click one above</div>
+      <button id="gen-exercise-btn" onclick="generateTenseExercise()" style="padding:10px 22px;background:#1a1a2e;color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;opacity:0.4;" disabled>Generate 15 Questions</button>
+      <button onclick="downloadExercise()" style="padding:10px 16px;background:transparent;color:#555;border:1px solid #ddd;border-radius:10px;font-size:13px;cursor:pointer;">Download .txt</button>
+    </div>
+
+    <!-- Questions area -->
+    <div id="exercise-questions-area" style="display:none;background:#fff;border:1px solid #e8e8e4;border-radius:12px;padding:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <div id="exercise-title" style="font-size:14px;font-weight:500;color:#1a1a2e;"></div>
+        <button onclick="showAnswers()" id="show-answers-btn" style="padding:8px 18px;background:#1a1a2e;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;">Show Answers</button>
+      </div>
+      <div id="exercise-questions-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+
+    <!-- Answers area -->
+    <div id="exercise-answers-area" style="display:none;background:#eef7ff;border:1px solid #c9dfff;border-radius:12px;padding:16px;">
+      <div style="font-size:14px;font-weight:500;color:#1a1a2e;margin-bottom:14px;">✅ Answers with Explanations</div>
+      <div id="exercise-answers-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+
+  </div>
+
+  <!-- SECTION 2: VOCABULARY -->
+  <div id="section-vocab" style="flex:1;overflow-y:auto;padding:20px;display:none;flex-direction:column;gap:16px;">
+    <div style="background:#fff;border:1px solid #e8e8e4;border-radius:12px;padding:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+        <div>
+          <div style="font-size:14px;font-weight:500;">10 New Words Every Click</div>
+          <div style="font-size:12px;color:#888;margin-top:2px;">Each click generates fresh vocabulary with 2 example sentences each</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <select id="vocab-level" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:12px;background:#fff;outline:none;">
+            <option value="beginner">Beginner</option>
+            <option value="intermediate" selected>Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+          <button onclick="generateVocab()" style="padding:9px 20px;background:#1a1a2e;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;">Generate Words</button>
+          <button onclick="downloadVocab()" style="padding:9px 14px;background:transparent;color:#555;border:1px solid #ddd;border-radius:10px;font-size:13px;cursor:pointer;">Download</button>
+        </div>
+      </div>
+    </div>
+    <div id="vocab-loading" style="display:none;text-align:center;padding:30px;color:#888;font-size:13px;">Generating vocabulary...</div>
+    <div id="vocab-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;"></div>
+  </div>
+
+  <!-- SECTION 3: STORY -->
+  <div id="section-story" style="flex:1;overflow-y:auto;padding:20px;display:none;flex-direction:column;gap:16px;">
+    <div style="background:#fff;border:1px solid #e8e8e4;border-radius:12px;padding:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:14px;font-weight:500;">New Story Every Click</div>
+          <div style="font-size:12px;color:#888;margin-top:2px;">Short useful stories to improve reading and grammar — different every time</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <select id="story-topic" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:12px;background:#fff;outline:none;">
+            <option value="daily life">Daily Life</option>
+            <option value="workplace">Workplace</option>
+            <option value="travel">Travel</option>
+            <option value="motivation">Motivation</option>
+            <option value="moral">Moral / Values</option>
+            <option value="technology">Technology</option>
+            <option value="health">Health & Wellness</option>
+          </select>
+          <button onclick="generateStory()" style="padding:9px 20px;background:#1a1a2e;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;">New Story</button>
+          <button onclick="downloadStory()" style="padding:9px 14px;background:transparent;color:#555;border:1px solid #ddd;border-radius:10px;font-size:13px;cursor:pointer;">Download</button>
+        </div>
+      </div>
+    </div>
+    <div id="story-loading" style="display:none;text-align:center;padding:30px;color:#888;font-size:13px;">Generating your story...</div>
+    <div id="story-area" style="display:none;background:#fff;border:1px solid #e8e8e4;border-radius:12px;padding:20px;">
+      <div id="story-title-el" style="font-size:16px;font-weight:500;color:#1a1a2e;margin-bottom:6px;"></div>
+      <div id="story-meta" style="font-size:11px;color:#aaa;margin-bottom:14px;"></div>
+      <div id="story-content-el" style="font-size:14px;line-height:1.85;color:#1a1a1a;white-space:pre-wrap;"></div>
+      <div id="story-lesson" style="margin-top:16px;padding:12px;background:#f5f5f0;border-radius:8px;font-size:13px;color:#555;line-height:1.6;"></div>
+    </div>
+  </div>
+
+</div>
 <script>
+  // ======= TENSE EXERCISE =======
+  const TENSES = [
+    'Simple Present','Present Continuous','Present Perfect','Present Perfect Continuous',
+    'Simple Past','Past Continuous','Past Perfect','Past Perfect Continuous',
+    'Simple Future','Future Continuous','Future Perfect','Future Perfect Continuous'
+  ];
+  let selectedTense = '';
+  let currentExerciseData = null;
+  let currentVocabData = null;
+  let currentStoryData = null;
+
+  function initTenseButtons() {
+    const grid = document.getElementById('tense-btn-grid');
+    if (!grid) return;
+    grid.innerHTML = TENSES.map(t => `<button onclick="selectTense('${t}')" id="tense-btn-${t.replace(/ /g,'_')}" style="padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:12px;background:#fff;color:#444;cursor:pointer;text-align:left;">${t}</button>`).join('');
+  }
+
+  function selectTense(tense) {
+    selectedTense = tense;
+    document.querySelectorAll('#tense-btn-grid button').forEach(b => {b.style.background='#fff';b.style.color='#444';b.style.borderColor='#ddd';b.style.fontWeight='400';});
+    const btn = document.getElementById('tense-btn-' + tense.replace(/ /g,'_'));
+    if (btn) {btn.style.background='#1a1a2e';btn.style.color='#fff';btn.style.borderColor='#1a1a2e';btn.style.fontWeight='500';}
+    document.getElementById('selected-tense-label').textContent = 'Selected: ' + tense;
+    const genBtn = document.getElementById('gen-exercise-btn');
+    genBtn.disabled = false; genBtn.style.opacity = '1';
+    document.getElementById('exercise-questions-area').style.display = 'none';
+    document.getElementById('exercise-answers-area').style.display = 'none';
+  }
+
+  async function generateTenseExercise() {
+    if (!selectedTense || !apiKey) { alert(!apiKey ? 'Set API key first.' : 'Select a tense first.'); return; }
+    const btn = document.getElementById('gen-exercise-btn');
+    btn.textContent = 'Generating...'; btn.disabled = true;
+    document.getElementById('exercise-questions-area').style.display = 'none';
+    document.getElementById('exercise-answers-area').style.display = 'none';
+    try {
+      const reply = await callGroq([
+        {role:'system',content:'You are an English grammar exercise generator. Return ONLY valid JSON, no markdown.'},
+        {role:'user',content:'Generate exactly 15 fill-in-the-blank sentences for tense: "' + selectedTense + '". Seed: ' + Math.floor(Math.random()*100000) + '.\nReturn ONLY JSON: {"tense":"' + selectedTense + '","questions":[{"no":1,"sentence":"She ___ (go) to school.","hint":"correct form"}],"answers":[{"no":1,"answer":"goes","explanation":"Third person singular needs -s."}]} with all 15 items. Unique daily-life sentences.'}
+      ], 3000);
+      currentExerciseData = JSON.parse(reply.replace(/```json|```/g,'').trim());
+      renderExercise(currentExerciseData);
+    } catch(e) { alert('Error: ' + e.message); }
+    btn.textContent = 'Generate 15 Questions'; btn.disabled = false;
+  }
+
+  function renderExercise(data) {
+    document.getElementById('exercise-title').textContent = data.tense + ' — Fill in the Blanks (15 Questions)';
+    document.getElementById('exercise-questions-list').innerHTML = data.questions.map(q =>
+      '<div style="padding:10px 14px;background:#f9f9f7;border:1px solid #e8e8e4;border-radius:8px;font-size:14px;line-height:1.6;"><span style="font-weight:500;color:#1a1a2e;margin-right:8px;">' + q.no + '.</span>' + escapeHtml(q.sentence) + (q.hint ? '<span style="font-size:11px;color:#aaa;margin-left:8px;">(' + escapeHtml(q.hint) + ')</span>' : '') + '</div>').join('');
+    document.getElementById('exercise-questions-area').style.display = 'block';
+    document.getElementById('exercise-answers-area').style.display = 'none';
+  }
+
+  function showAnswers() {
+    if (!currentExerciseData) return;
+    document.getElementById('exercise-answers-list').innerHTML = currentExerciseData.answers.map(a =>
+      '<div style="padding:12px 14px;background:#fff;border:1px solid #c9e8d0;border-radius:8px;"><div style="font-size:14px;"><span style="font-weight:500;color:#1a1a2e;margin-right:8px;">' + a.no + '.</span>Answer: <span style="color:#1a7a45;font-weight:500;">' + escapeHtml(a.answer) + '</span></div><div style="font-size:12px;color:#555;margin-top:5px;line-height:1.5;">&#128161; ' + escapeHtml(a.explanation) + '</div></div>').join('');
+    document.getElementById('exercise-answers-area').style.display = 'block';
+    document.getElementById('exercise-answers-area').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  function downloadExercise() {
+    if (!currentExerciseData) { alert('Generate an exercise first.'); return; }
+    const d = currentExerciseData;
+    let txt = 'TENSE EXERCISE: ' + d.tense + '\n' + '='.repeat(50) + '\n\nQUESTIONS\n' + '-'.repeat(40) + '\n\n';
+    d.questions.forEach(q => { txt += q.no + '. ' + q.sentence + '\n'; });
+    txt += '\n\nANSWERS WITH EXPLANATIONS\n' + '-'.repeat(40) + '\n\n';
+    d.answers.forEach(a => { txt += a.no + '. Answer: ' + a.answer + '\n   ' + a.explanation + '\n\n'; });
+    txt += '\nGrammar AI Agent — Nik | ' + new Date().toLocaleDateString('en-IN');
+    downloadTxt(txt, 'tense-' + d.tense.replace(/ /g,'-') + '.txt');
+  }
+
+  async function generateVocab() {
+    if (!apiKey) { alert('Set API key first.'); return; }
+    const level = document.getElementById('vocab-level').value;
+    document.getElementById('vocab-loading').style.display = 'block';
+    document.getElementById('vocab-cards').innerHTML = '';
+    try {
+      const reply = await callGroq([
+        {role:'system',content:'You are a vocabulary teacher. Return ONLY valid JSON, no markdown.'},
+        {role:'user',content:'Generate 10 unique ' + level + '-level English words. Seed: ' + Math.floor(Math.random()*99999) + '.\nReturn ONLY: {"level":"' + level + '","words":[{"word":"accomplish","type":"verb","meaning":"to successfully complete something","example1":"She accomplished her goal.","example2":"Hard work helps you accomplish great things."},...10 items]}. All practical, daily-use words.'}
+      ], 2500);
+      currentVocabData = JSON.parse(reply.replace(/```json|```/g,'').trim());
+      renderVocab(currentVocabData);
+    } catch(e) { document.getElementById('vocab-cards').innerHTML = '<div style="color:#c00;padding:16px;">Error: ' + e.message + '</div>'; }
+    document.getElementById('vocab-loading').style.display = 'none';
+  }
+
+  function renderVocab(data) {
+    const typeColors = {verb:'#e8f4fd',noun:'#e8fdf0',adjective:'#fdf4e8',adverb:'#f0e8fd',phrase:'#fde8e8'};
+    const typeText = {verb:'#1a6fa8',noun:'#1a7a45',adjective:'#a86a1a',adverb:'#6a1aa8',phrase:'#a81a1a'};
+    document.getElementById('vocab-cards').innerHTML = (data.words||[]).map(w => {
+      const bg=typeColors[w.type]||'#f5f5f0', tc=typeText[w.type]||'#444';
+      return '<div style="background:#fff;border:1px solid #e8e8e4;border-radius:12px;padding:16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="font-size:16px;font-weight:500;color:#1a1a2e;">' + escapeHtml(w.word) + '</span><span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:' + bg + ';color:' + tc + ';">' + escapeHtml(w.type) + '</span></div><div style="font-size:13px;color:#555;margin-bottom:10px;">' + escapeHtml(w.meaning) + '</div><div style="font-size:12px;color:#777;border-left:3px solid #e8e8e4;padding-left:10px;"><div>1. ' + escapeHtml(w.example1) + '</div><div style="margin-top:4px;">2. ' + escapeHtml(w.example2) + '</div></div></div>';
+    }).join('');
+  }
+
+  function downloadVocab() {
+    if (!currentVocabData) { alert('Generate vocabulary first.'); return; }
+    let txt = 'VOCABULARY — ' + currentVocabData.level.toUpperCase() + '\n' + '='.repeat(50) + '\n\n';
+    (currentVocabData.words||[]).forEach((w,i) => { txt += (i+1) + '. ' + w.word + ' (' + w.type + ')\n   ' + w.meaning + '\n   1. ' + w.example1 + '\n   2. ' + w.example2 + '\n\n'; });
+    txt += 'Grammar AI Agent — Nik | ' + new Date().toLocaleDateString('en-IN');
+    downloadTxt(txt, 'vocabulary-' + currentVocabData.level + '.txt');
+  }
+
+  async function generateStory() {
+    if (!apiKey) { alert('Set API key first.'); return; }
+    const topic = document.getElementById('story-topic').value;
+    document.getElementById('story-loading').style.display = 'block';
+    document.getElementById('story-area').style.display = 'none';
+    try {
+      const reply = await callGroq([
+        {role:'system',content:'You are a creative English story writer. Return ONLY valid JSON, no markdown.'},
+        {role:'user',content:'Write a short useful English story on topic: "' + topic + '". Seed: ' + Math.floor(Math.random()*99999) + '.\nReturn ONLY: {"title":"Story Title","topic":"' + topic + '","level":"intermediate","readingTime":"3 min","story":"200-280 word story. Natural English, relatable to Indian readers, include dialogue.","grammarFocus":"Grammar this story demonstrates.","lesson":"Key moral in 1-2 sentences."}'}
+      ], 2000);
+      currentStoryData = JSON.parse(reply.replace(/```json|```/g,'').trim());
+      renderStory(currentStoryData);
+    } catch(e) { document.getElementById('story-loading').style.display='none'; alert('Error: '+e.message); }
+  }
+
+  function renderStory(data) {
+    document.getElementById('story-loading').style.display = 'none';
+    document.getElementById('story-title-el').textContent = data.title;
+    document.getElementById('story-meta').textContent = 'Topic: ' + data.topic + ' • Level: ' + data.level + ' • ' + data.readingTime + ' read';
+    document.getElementById('story-content-el').textContent = data.story;
+    document.getElementById('story-lesson').innerHTML = '<strong>Grammar Focus:</strong> ' + escapeHtml(data.grammarFocus) + '<br><strong>Lesson:</strong> ' + escapeHtml(data.lesson);
+    document.getElementById('story-area').style.display = 'block';
+  }
+
+  function downloadStory() {
+    if (!currentStoryData) { alert('Generate a story first.'); return; }
+    const d = currentStoryData;
+    const txt = d.title + '\n' + '='.repeat(d.title.length) + '\nTopic: ' + d.topic + ' | ' + d.readingTime + ' read\n\n' + d.story + '\n\n' + '-'.repeat(40) + '\nGrammar: ' + d.grammarFocus + '\nLesson: ' + d.lesson + '\n\nGrammar AI Agent — Nik | ' + new Date().toLocaleDateString('en-IN');
+    downloadTxt(txt, 'story-' + d.topic.replace(/ /g,'-') + '.txt');
+  }
+
+  function showTenseSection(section) {
+    ['exercise','vocab','story'].forEach(s => {
+      const el = document.getElementById('section-' + s);
+      if (el) el.style.display = s === section ? 'flex' : 'none';
+      const btn = document.getElementById('subnav-' + s);
+      if (btn) { btn.style.borderBottom = s===section ? '2px solid #1a1a2e' : '2px solid transparent'; btn.style.color = s===section ? '#1a1a2e' : '#888'; btn.style.fontWeight = s===section ? '500' : '400'; }
+    });
+  }
+
+  function downloadTxt(content, filename) {
+    const blob = new Blob([content], {type:'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
   let lang = "en";
   let history = [];
   let apiKey = localStorage.getItem("grammar_agent_key") || "";
@@ -1956,9 +2219,23 @@ Extra rule:
 
   function switchTab(tab) {
     currentTab = tab;
+    // Hide all regular tab-pages inside right-panel
     document.querySelectorAll(".tab-page").forEach((p) => p.classList.remove("active"));
     document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
-    document.getElementById("tab-" + tab).classList.add("active");
+
+    // Tense tab is outside right-panel — handle separately
+    const tenseTab = document.getElementById("tab-tense");
+    const rightPanel = document.getElementById("right-panel");
+    if (tab === "tense") {
+      if (tenseTab) tenseTab.style.display = "flex";
+      if (rightPanel) rightPanel.style.display = "none";
+    } else {
+      if (tenseTab) tenseTab.style.display = "none";
+      if (rightPanel) rightPanel.style.display = "flex";
+      const tabEl = document.getElementById("tab-" + tab);
+      if (tabEl) tabEl.classList.add("active");
+    }
+
     const navBtn = document.getElementById("nav-" + tab);
     if (navBtn) navBtn.classList.add("active");
 
@@ -3541,6 +3818,7 @@ Paragraph to correct:
   setCurrentTime();
   setDrawingMode("draw");
   loadProfile();
+  initTenseButtons();
   document.getElementById("reply-mode").value = replyMode;
 
   if (apiKey) {
