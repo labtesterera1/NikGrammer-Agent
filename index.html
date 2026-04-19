@@ -8,15 +8,16 @@
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <link rel="manifest" href="manifest.json"/>
-  <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');</script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-    :root{--dark:#1a1a2e;--accent:#4f46e5;--bg:#f5f5f0;--white:#fff;--border:#e8e8e4;--text:#1a1a1a;--muted:#888;--radius:12px;}
+    :root{
+      --dark:#1a1a2e;--accent:#4f46e5;--bg:#f5f5f0;--white:#fff;
+      --border:#e8e8e4;--text:#1a1a1a;--muted:#888;--radius:12px;
+    }
     body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
 
     /* TOP BAR */
-    #topbar{background:var(--dark);color:#fff;padding:env(safe-area-inset-top) 16px 0;flex-shrink:0;}
+    #topbar{background:var(--dark);color:#fff;padding:env(safe-area-inset-top,0px) 16px 0;flex-shrink:0;}
     #topbar-inner{display:flex;align-items:center;justify-content:space-between;height:52px;}
     #topbar h1{font-size:15px;font-weight:600;letter-spacing:0.3px;}
     #topbar p{font-size:10px;opacity:0.5;margin-top:1px;}
@@ -26,18 +27,25 @@
     .lang-pill button.active{background:#fff;color:var(--dark);}
 
     /* BOTTOM NAV */
-    #bottomnav{display:flex;background:var(--dark);padding-bottom:env(safe-area-inset-bottom);flex-shrink:0;border-top:1px solid rgba(255,255,255,0.08);}
-    .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;border:none;background:transparent;color:rgba(255,255,255,0.5);cursor:pointer;font-size:9px;gap:3px;transition:color 0.15s;}
-    .bnav-btn .bi{font-size:18px;line-height:1;}
+    #bottomnav{display:flex;background:var(--dark);padding-bottom:env(safe-area-inset-bottom,0px);flex-shrink:0;border-top:1px solid rgba(255,255,255,0.08);overflow-x:auto;}
+    .bnav-btn{flex:1;min-width:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px;border:none;background:transparent;color:rgba(255,255,255,0.5);cursor:pointer;font-size:8px;gap:2px;transition:color 0.15s;white-space:nowrap;}
+    .bnav-btn .bi{font-size:17px;line-height:1;}
     .bnav-btn.active{color:#fff;}
-    .bnav-btn.active .bi{filter:drop-shadow(0 0 6px rgba(255,255,255,0.4));}
 
     /* PAGES */
     #pages{flex:1;overflow:hidden;position:relative;}
     .page{display:none;flex-direction:column;height:100%;overflow:hidden;}
     .page.active{display:flex;}
 
-    /* CHAT PAGE */
+    /* SCROLLABLE CONTENT */
+    .page-scroll{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
+
+    /* CARD */
+    .card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+    .card h3{font-size:13px;font-weight:500;margin-bottom:8px;color:#444;}
+    .card p{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px;}
+
+    /* CHAT */
     #msg-list{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
     .msg{display:flex;flex-direction:column;max-width:88%;}
     .msg.user{align-self:flex-end;align-items:flex-end;}
@@ -57,65 +65,70 @@
     #send-btn{width:42px;height:42px;border-radius:50%;background:var(--dark);color:#fff;border:none;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
     #send-btn:disabled{opacity:0.35;}
 
-    /* REPLY MODE */
+    /* MODE + QUICK BARS */
     .mode-bar{display:flex;gap:6px;padding:8px 12px;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;}
     .mode-chip{padding:5px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;cursor:pointer;white-space:nowrap;background:#fff;color:#555;flex-shrink:0;}
     .mode-chip.active{background:var(--dark);color:#fff;border-color:var(--dark);}
-
-    /* QUICK CHIPS */
     .quick-bar{display:flex;gap:6px;padding:8px 12px;overflow-x:auto;flex-shrink:0;}
     .quick-chip{padding:6px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;cursor:pointer;white-space:nowrap;background:#fff;color:#555;flex-shrink:0;}
 
-    /* PARAGRAPH PAGE */
-    .page-scroll{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
-    .card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
-    .card h3{font-size:13px;font-weight:500;margin-bottom:8px;color:#444;}
+    /* FORMS */
     textarea.full{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;resize:none;min-height:120px;outline:none;line-height:1.6;}
     textarea.full:focus{border-color:var(--dark);}
-    .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-    .btn-primary{padding:9px 18px;background:var(--dark);color:#fff;border:none;border-radius:9px;font-size:13px;cursor:pointer;}
-    .btn-secondary{padding:9px 14px;background:transparent;color:#555;border:1px solid var(--border);border-radius:9px;font-size:13px;cursor:pointer;}
-    select.ctrl{padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:#fff;outline:none;}
+    select.ctrl{padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:#fff;outline:none;font-family:inherit;}
+    input.ctrl{padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff;outline:none;font-family:inherit;width:100%;}
+    .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;}
+    .btn-primary{padding:9px 18px;background:var(--dark);color:#fff;border:none;border-radius:9px;font-size:13px;cursor:pointer;font-family:inherit;}
+    .btn-secondary{padding:9px 14px;background:transparent;color:#555;border:1px solid var(--border);border-radius:9px;font-size:13px;cursor:pointer;font-family:inherit;}
+    .btn-primary:disabled,.btn-secondary:disabled{opacity:0.4;cursor:not-allowed;}
     .output-box{padding:12px;border:1px solid var(--border);border-radius:10px;font-size:14px;line-height:1.7;white-space:pre-wrap;min-height:80px;color:var(--text);}
     .output-placeholder{color:#ccc;font-style:italic;}
 
-    /* TENSE PAGE */
+    /* TENSE/FC */
     .tense-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
-    .tense-btn{padding:10px 8px;border:1px solid var(--border);border-radius:9px;font-size:12px;background:#fff;color:#444;cursor:pointer;text-align:center;}
+    .tense-btn{padding:10px 8px;border:1px solid var(--border);border-radius:9px;font-size:12px;background:#fff;color:#444;cursor:pointer;text-align:center;font-family:inherit;}
     .tense-btn.sel{background:var(--dark);color:#fff;border-color:var(--dark);}
     .q-item{padding:10px 12px;background:#f9f9f7;border:1px solid var(--border);border-radius:8px;font-size:14px;line-height:1.6;}
-    .q-num{font-weight:600;color:var(--dark);margin-right:6px;}
-    .ans-item{padding:10px 12px;background:#fff;border:1px solid #c9e8d0;border-radius:8px;}
-    .ans-word{color:#1a7a45;font-weight:600;}
+    .ans-item{padding:10px 12px;background:#fff;border:1px solid #c9e8d0;border-radius:8px;margin-bottom:6px;}
     .ans-exp{font-size:12px;color:#555;margin-top:4px;line-height:1.5;}
 
-    /* FLASHCARD PAGE */
-    .fc-card{width:100%;min-height:200px;cursor:pointer;perspective:1000px;margin:12px 0;}
+    /* FLASHCARD */
+    .fc-card{width:100%;min-height:200px;cursor:pointer;perspective:1000px;margin:10px 0;}
     .fc-inner{width:100%;min-height:200px;position:relative;transform-style:preserve-3d;transition:transform 0.5s;}
     .fc-face{position:absolute;width:100%;min-height:200px;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;}
     .fc-front{background:var(--dark);color:#fff;}
-    .fc-back{background:#fff;border:2px solid var(--dark);transform:rotateY(180deg);}
+    .fc-back{background:#fff;border:2px solid var(--dark);transform:rotateY(180deg);overflow-y:auto;}
     .fc-hint{font-size:10px;opacity:0.4;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
     .fc-q{font-size:16px;font-weight:500;line-height:1.5;}
     .fc-a{font-size:16px;font-weight:500;color:var(--dark);line-height:1.5;}
     .fc-exp{font-size:12px;color:#666;margin-top:8px;line-height:1.5;}
+    .fc-exp-hi{font-size:12px;color:#7c3aed;margin-top:6px;line-height:1.5;font-style:italic;display:none;}
     .fc-btns{display:flex;gap:10px;justify-content:center;margin-top:4px;}
     .fc-know{padding:11px 24px;background:#e8fdf0;color:#1a7a45;border:1px solid #9FE1CB;border-radius:10px;font-size:14px;cursor:pointer;font-weight:500;}
     .fc-unkn{padding:11px 24px;background:#fde8e8;color:#a81a1a;border:1px solid #f09595;border-radius:10px;font-size:14px;cursor:pointer;font-weight:500;}
     .fc-nav{display:flex;gap:8px;justify-content:center;margin-top:8px;}
-    .fc-nav button{padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:#fff;color:#444;cursor:pointer;font-size:13px;}
+    .fc-nav button{padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:#fff;color:#444;cursor:pointer;font-size:13px;font-family:inherit;}
     .fc-prog{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:8px 0;}
     .fc-prog-bar{height:100%;background:var(--dark);border-radius:2px;transition:width 0.3s;}
     .fc-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);}
 
-    /* VOCAB PAGE */
+    /* VOCAB */
     .vocab-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
     .vocab-word{font-size:16px;font-weight:600;color:var(--dark);}
     .vocab-type{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;margin-left:6px;background:#e8f4fd;color:#1a6fa8;}
     .vocab-meaning{font-size:13px;color:#555;margin:6px 0 8px;}
     .vocab-ex{font-size:12px;color:#777;border-left:3px solid var(--border);padding-left:10px;line-height:1.6;}
 
-    /* WORLD AI PAGE */
+    /* NEWS CARD */
+    .news-card-m{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;}
+    .news-tag-m{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;margin-bottom:6px;text-transform:uppercase;}
+    .tag-grammar{background:#e8f4fd;color:#1a6fa8;}
+    .tag-vocab{background:#e8fdf0;color:#1a7a45;}
+    .tag-reading{background:#fdf4e8;color:#a86a1a;}
+    .tag-news{background:#f0e8fd;color:#6a1aa8;}
+    .tag-practice{background:#fde8e8;color:#a81a1a;}
+
+    /* AI CARD */
     .ai-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
     .ai-icon{font-size:28px;flex-shrink:0;}
     .ai-info{flex:1;}
@@ -123,21 +136,23 @@
     .ai-company{font-size:11px;color:var(--muted);}
     .ai-desc{font-size:12px;color:#666;margin-top:4px;line-height:1.4;}
     .ai-open{padding:6px 14px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;flex-shrink:0;}
-    .cat-badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:500;background:#f5f5f0;color:#666;margin-left:4px;}
 
-    /* STORY PAGE */
-    .story-title{font-size:18px;font-weight:600;color:var(--dark);margin-bottom:4px;}
+    /* STORY */
+    .story-title{font-size:17px;font-weight:600;color:var(--dark);margin-bottom:4px;}
     .story-meta{font-size:11px;color:var(--muted);margin-bottom:12px;}
     .story-body{font-size:14px;line-height:1.85;white-space:pre-wrap;}
     .story-lesson{margin-top:14px;padding:12px;background:#f5f5f0;border-radius:8px;font-size:13px;color:#555;line-height:1.6;}
 
-    /* SETUP SCREEN */
+    /* PROFILE */
+    .profile-avatar{width:80px;height:80px;border-radius:50%;background:var(--dark);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;border:3px solid var(--border);overflow:hidden;flex-shrink:0;cursor:pointer;}
+    .profile-avatar img{width:100%;height:100%;object-fit:cover;display:none;}
+
+    /* SETUP */
     #setup{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;}
     .setup-card{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:380px;}
     .setup-card h2{font-size:17px;font-weight:600;margin-bottom:6px;}
     .setup-card p{font-size:13px;color:#666;line-height:1.6;margin-bottom:16px;}
     .setup-card input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;}
-    .setup-card input:focus{border-color:var(--dark);}
     .setup-card button{width:100%;padding:11px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;}
     .setup-note{font-size:11px;color:#aaa;text-align:center;margin-top:8px;}
 
@@ -145,6 +160,14 @@
     .loading{text-align:center;padding:24px;color:var(--muted);font-size:13px;}
     ::-webkit-scrollbar{width:3px;}
     ::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px;}
+
+    /* SUB-TAB NAV */
+    .subnav{display:flex;border-bottom:1px solid var(--border);background:#fff;flex-shrink:0;overflow-x:auto;}
+    .subnav-btn{padding:10px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;font-family:inherit;}
+    .subnav-btn.active{border-bottom-color:var(--dark);color:var(--dark);font-weight:500;}
+
+    /* WORLD CLOCK GRID */
+    .wc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#f5f5f0;border-radius:8px;margin-bottom:6px;}
   </style>
 </head>
 <body>
@@ -153,7 +176,7 @@
 <div id="setup">
   <div class="setup-card">
     <h2>Setup Groq API Key</h2>
-    <p>Free AI key — no credit card needed.<br>Get it at <strong>console.groq.com</strong> → API Keys → Create</p>
+    <p>Free AI — no credit card needed!<br>Get it at <strong>console.groq.com</strong> → API Keys → Create</p>
     <input type="password" id="api-inp" placeholder="gsk_..." />
     <button onclick="saveKey()">Save & Start</button>
     <p class="setup-note">Stored only on your device</p>
@@ -179,19 +202,20 @@
 <!-- PAGES -->
 <div id="pages">
 
-  <!-- CHAT PAGE -->
+  <!-- ====== CHAT ====== -->
   <div class="page active" id="page-chat">
     <div class="mode-bar">
       <button class="mode-chip active" id="mc-bilingual" onclick="setMode('bilingual',this)">EN+Hindi</button>
       <button class="mode-chip" id="mc-english" onclick="setMode('english',this)">English Only</button>
       <button class="mode-chip" id="mc-hindi" onclick="setMode('hindi',this)">Hindi First</button>
     </div>
-    <div class="quick-bar" id="quick-bar">
+    <div class="quick-bar">
       <button class="quick-chip" onclick="useQ('Check my grammar')">Check Grammar</button>
       <button class="quick-chip" onclick="useQ('Explain tense rules with examples')">Tense Rules</button>
       <button class="quick-chip" onclick="useQ('Common English mistakes Indians make')">Common Mistakes</button>
       <button class="quick-chip" onclick="useQ('Give me a grammar quiz')">Quiz</button>
       <button class="quick-chip" onclick="useQ('When to use a an the?')">Articles</button>
+      <button class="quick-chip" onclick="useQ('Explain prepositions with examples')">Prepositions</button>
     </div>
     <div id="msg-list"></div>
     <div id="chat-input-row">
@@ -200,12 +224,12 @@
     </div>
   </div>
 
-  <!-- PARAGRAPH PAGE -->
+  <!-- ====== PARAGRAPH CORRECTION ====== -->
   <div class="page" id="page-para">
     <div class="page-scroll">
       <div class="card">
         <h3>Your Paragraph</h3>
-        <textarea class="full" id="para-in" placeholder="Paste or type your paragraph here... No word limit!" oninput="updateWC()"></textarea>
+        <textarea class="full" id="para-in" placeholder="Paste or type your paragraph here... No word limit! Any number of paragraphs supported.&#10;&#10;Example: Yesterday I was go to market and buyed some vegetable. My friend he also come with me." oninput="updateWC()"></textarea>
         <div style="font-size:11px;color:var(--muted);margin-top:4px;" id="wc-label">0 words</div>
         <div class="btn-row">
           <select class="ctrl" id="para-mode">
@@ -213,32 +237,58 @@
             <option value="improve">Correct + improve style</option>
             <option value="formal">Make it formal</option>
             <option value="simple">Make it simpler</option>
-            <option value="explain">Correct + explain errors</option>
+            <option value="explain">Correct + explain each error</option>
           </select>
+        </div>
+        <div class="btn-row">
           <button class="btn-primary" onclick="correctPara()">Correct Now</button>
           <button class="btn-secondary" onclick="clearPara()">Clear</button>
+          <button class="btn-secondary" onclick="copyPara()">Copy</button>
         </div>
       </div>
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <h3 style="margin:0;">Corrected Version</h3>
-          <button class="btn-secondary" style="padding:5px 10px;font-size:11px;" onclick="copyPara()">Copy</button>
-        </div>
+        <h3>Corrected Version</h3>
         <div class="output-box" id="para-out"><span class="output-placeholder">Corrected paragraph will appear here...</span></div>
       </div>
     </div>
   </div>
 
-  <!-- TENSE EXERCISE PAGE -->
+  <!-- ====== EMAIL CORRECTION ====== -->
+  <div class="page" id="page-email">
+    <div class="page-scroll">
+      <div class="card">
+        <h3>✉️ Email Correction</h3>
+        <p>Paste any email — unlimited length, any paragraphs. Get grammar fixes + professional suggestions via Groq.</p>
+        <select class="ctrl" id="email-style" style="width:100%;margin-bottom:8px;">
+          <option value="professional">Professional</option>
+          <option value="formal">Formal / Official</option>
+          <option value="friendly">Friendly Business</option>
+          <option value="simple">Simple & Clear</option>
+          <option value="assertive">Assertive / Confident</option>
+        </select>
+        <textarea class="full" id="email-in" placeholder="Paste your email here...&#10;&#10;Example:&#10;Dear sir, I am writing to you regarding the meeting what was scheduled on monday. I have complete my part of the work and need your feedback at earliest." oninput="updateEmailWC()" style="min-height:160px;"></textarea>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="email-wc">0 words</div>
+        <div class="btn-row">
+          <button class="btn-primary" id="email-btn" onclick="correctEmail()">Correct & Suggest</button>
+          <button class="btn-secondary" onclick="clearEmailPage()">Clear</button>
+          <button class="btn-secondary" onclick="navigator.clipboard.writeText(document.getElementById('email-out').innerText)">Copy</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Result</h3>
+        <div class="output-box" id="email-out" style="min-height:180px;"><span class="output-placeholder">Corrected email + professional suggestions will appear here...</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== TENSE / EXERCISE PAGE ====== -->
   <div class="page" id="page-tense">
-    <!-- Sub tabs -->
-    <div style="display:flex;border-bottom:1px solid var(--border);background:#fff;flex-shrink:0;overflow-x:auto;">
-      <button id="st-exercise" onclick="showSub('exercise')" style="padding:10px 16px;border:none;border-bottom:2px solid var(--dark);background:transparent;font-size:12px;font-weight:500;color:var(--dark);cursor:pointer;white-space:nowrap;">📝 Exercise</button>
-      <button id="st-flashcard" onclick="showSub('flashcard')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">🃏 FlashCards</button>
-      <button id="st-vocab" onclick="showSub('vocab')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">📖 Vocab</button>
-      <button id="st-story" onclick="showSub('story')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">📚 Story</button>
-      <button id="st-timezone" onclick="showSub('timezone')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">🕐 Time Zone</button>
-      <button id="st-email" onclick="showSub('email')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">✉️ Email</button>
+    <div class="subnav">
+      <button class="subnav-btn active" id="st-exercise" onclick="showSub('exercise')">📝 Exercise</button>
+      <button class="subnav-btn" id="st-flashcard" onclick="showSub('flashcard')">🃏 FlashCards</button>
+      <button class="subnav-btn" id="st-vocab" onclick="showSub('vocab')">📖 Vocab</button>
+      <button class="subnav-btn" id="st-story" onclick="showSub('story')">📚 Story</button>
+      <button class="subnav-btn" id="st-timezone" onclick="showSub('timezone')">🕐 Time Zone</button>
     </div>
 
     <!-- Exercise Sub -->
@@ -259,7 +309,7 @@
         </div>
         <div id="m-qs-list" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
-      <div id="m-ans-area" style="display:none;" class="card" style="background:#eef7ff;border-color:#c9dfff;">
+      <div id="m-ans-area" style="display:none;" class="card" style="background:#eef7ff;">
         <div style="font-size:13px;font-weight:500;color:var(--dark);margin-bottom:10px;">✅ Answers</div>
         <div id="m-ans-list" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
@@ -268,7 +318,7 @@
     <!-- FlashCard Sub -->
     <div class="page-scroll" id="sub-flashcard" style="display:none;">
       <div class="card">
-        <h3>FlashCards</h3>
+        <h3>FlashCards — Quizlet Style</h3>
         <div class="btn-row">
           <select class="ctrl" id="m-fc-topic">
             <option value="Simple Present">Simple Present</option>
@@ -276,12 +326,12 @@
             <option value="Present Perfect">Present Perfect</option>
             <option value="Future Simple">Future Simple</option>
             <option value="Prepositions">Prepositions</option>
-            <option value="Articles">Articles</option>
-            <option value="Vocabulary">Vocabulary</option>
+            <option value="Articles">Articles (a/an/the)</option>
+            <option value="Vocabulary">Vocabulary Words</option>
           </select>
-          <button class="btn-primary" onclick="mGenFlashCards()">Generate Cards</button>
-          <button id="m-fc-hindi-btn" onclick="mToggleFCHindi()" style="padding:9px 12px;background:transparent;color:#7c3aed;border:1px solid #7c3aed;border-radius:9px;font-size:12px;cursor:pointer;">हिंदी</button>
-          <button onclick="mDownloadFCPPT()" style="padding:9px 12px;background:transparent;color:#555;border:1px solid var(--border);border-radius:9px;font-size:12px;cursor:pointer;">📊 PPT</button>
+          <button class="btn-primary" onclick="mGenFlashCards()">Generate</button>
+          <button id="m-fc-hindi-btn" onclick="mToggleFCHindi()" style="padding:9px 12px;background:transparent;color:#7c3aed;border:1px solid #7c3aed;border-radius:9px;font-size:12px;cursor:pointer;font-family:inherit;">हिंदी</button>
+          <button onclick="mDownloadFCPPT()" style="padding:9px 12px;background:transparent;color:#555;border:1px solid var(--border);border-radius:9px;font-size:12px;cursor:pointer;font-family:inherit;">📊 PPT</button>
         </div>
       </div>
       <div id="m-fc-loading" class="loading" style="display:none;">Generating flashcards...</div>
@@ -301,7 +351,7 @@
               <div class="fc-hint">answer</div>
               <div class="fc-a" id="m-fc-a"></div>
               <div class="fc-exp" id="m-fc-exp"></div>
-              <div class="fc-exp" id="m-fc-exp-hi" style="color:#7c3aed;display:none;font-style:italic;"></div>
+              <div class="fc-exp-hi" id="m-fc-exp-hi"></div>
             </div>
           </div>
         </div>
@@ -326,14 +376,14 @@
     <!-- Vocab Sub -->
     <div class="page-scroll" id="sub-vocab" style="display:none;">
       <div class="card">
-        <h3>Vocabulary</h3>
+        <h3>Vocabulary — 10 New Words</h3>
         <div class="btn-row">
           <select class="ctrl" id="m-vocab-level">
             <option value="beginner">Beginner</option>
             <option value="intermediate" selected>Intermediate</option>
             <option value="advanced">Advanced</option>
           </select>
-          <button class="btn-primary" onclick="mGenVocab()">Generate 10 Words</button>
+          <button class="btn-primary" onclick="mGenVocab()">Generate</button>
           <button class="btn-secondary" onclick="mDownloadVocab()">Download</button>
         </div>
       </div>
@@ -353,7 +403,7 @@
             <option value="motivation">Motivation</option>
             <option value="moral">Moral / Values</option>
             <option value="technology">Technology</option>
-            <option value="health">Health</option>
+            <option value="health">Health & Wellness</option>
           </select>
           <button class="btn-primary" onclick="mGenStory()">New Story</button>
           <button class="btn-secondary" onclick="mDownloadStory()">Download</button>
@@ -368,14 +418,14 @@
       </div>
     </div>
 
-    <!-- Timezone Sub -->
+    <!-- Time Zone Sub -->
     <div class="page-scroll" id="sub-timezone" style="display:none;">
       <div class="card">
         <h3>🕐 Time Zone Converter</h3>
         <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
           <div>
             <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Date & Time</div>
-            <input id="m-tz-dt" type="datetime-local" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;"/>
+            <input id="m-tz-dt" type="datetime-local" class="ctrl" style="width:100%;"/>
           </div>
           <div>
             <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">From</div>
@@ -384,6 +434,7 @@
               <option value="UTC">UTC</option>
               <option value="America/New_York">New York (EST/EDT)</option>
               <option value="America/Los_Angeles">Los Angeles (PST/PDT)</option>
+              <option value="America/Chicago">Chicago (CST/CDT)</option>
               <option value="Europe/London">London (GMT/BST)</option>
               <option value="Europe/Paris">Paris (CET/CEST)</option>
               <option value="Asia/Dubai">Dubai (GST)</option>
@@ -399,6 +450,7 @@
               <option value="Asia/Kolkata">India (IST)</option>
               <option value="America/New_York">New York (EST/EDT)</option>
               <option value="America/Los_Angeles">Los Angeles (PST/PDT)</option>
+              <option value="America/Chicago">Chicago (CST/CDT)</option>
               <option value="Europe/London">London (GMT/BST)</option>
               <option value="Europe/Paris">Paris (CET/CEST)</option>
               <option value="Asia/Dubai">Dubai (GST)</option>
@@ -416,85 +468,161 @@
         </div>
       </div>
       <div class="card">
-        <h3 style="margin-bottom:10px;">🌍 World Clock</h3>
-        <div id="m-world-clock" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <h3 style="margin-bottom:10px;">🌍 World Clock — Live</h3>
+        <div id="m-world-clock"></div>
       </div>
     </div>
-
-    <!-- Email Sub -->
-    <div class="page-scroll" id="sub-email" style="display:none;">
-      <div class="card">
-        <h3>✉️ Email Correction</h3>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">Paste any email — get grammar corrections + professional suggestions via Groq</p>
-        <select class="ctrl" id="m-email-style" style="width:100%;margin-bottom:8px;">
-          <option value="professional">Professional</option>
-          <option value="formal">Formal / Official</option>
-          <option value="friendly">Friendly Business</option>
-          <option value="simple">Simple & Clear</option>
-          <option value="assertive">Assertive / Confident</option>
-        </select>
-        <textarea class="full" id="m-email-in" placeholder="Paste your email here... any length, multiple paragraphs supported." style="min-height:160px;" oninput="mUpdateEmailWC()"></textarea>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="m-email-wc">0 words</div>
-        <div class="btn-row">
-          <button class="btn-primary" id="m-email-btn" onclick="mCorrectEmail()">Correct & Suggest</button>
-          <button class="btn-secondary" onclick="mClearEmail()">Clear</button>
-          <button class="btn-secondary" onclick="navigator.clipboard.writeText(document.getElementById('m-email-out').innerText)">Copy</button>
-        </div>
-      </div>
-      <div class="card">
-        <h3 style="margin-bottom:8px;">Result</h3>
-        <div class="output-box" id="m-email-out" style="min-height:180px;"><span class="output-placeholder">Corrected email + suggestions will appear here...</span></div>
-      </div>
-    </div>
-
   </div>
 
-  <!-- TRANSLATOR PAGE -->
+  <!-- ====== TRANSLATOR PAGE ====== -->
   <div class="page" id="page-translator">
-    <div style="display:flex;border-bottom:1px solid var(--border);background:#fff;flex-shrink:0;">
-      <button id="tr-en2hi" onclick="showTr('en2hi')" style="flex:1;padding:10px;border:none;border-bottom:2px solid var(--dark);background:transparent;font-size:13px;font-weight:500;color:var(--dark);cursor:pointer;">EN → Hindi</button>
-      <button id="tr-hi2en" onclick="showTr('hi2en')" style="flex:1;padding:10px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:13px;color:var(--muted);cursor:pointer;">Hindi → EN</button>
+    <div class="subnav">
+      <button class="subnav-btn active" id="tr-en2hi" onclick="showTr('en2hi')">EN → Hindi</button>
+      <button class="subnav-btn" id="tr-hi2en" onclick="showTr('hi2en')">Hindi → EN</button>
     </div>
     <div class="page-scroll">
       <div class="card" id="tr-en2hi-panel">
-        <h3>English → Hindi</h3>
+        <h3>English → Hindi Converter</h3>
+        <p>Paste any news, paragraph or text. Choose a mode for easy Hindi reading.</p>
         <select class="ctrl" id="tr-mode" style="width:100%;margin-bottom:8px;">
           <option value="simple_hindi">Simple Hindi</option>
           <option value="bilingual">Hindi + English Summary</option>
+          <option value="learning">Hindi with English keywords</option>
           <option value="bullet">Hindi Bullet Points</option>
+          <option value="dynamic">Dynamic Auto Mode</option>
         </select>
-        <textarea class="full" id="tr-in" placeholder="Paste English text here..." style="min-height:100px;"></textarea>
+        <textarea class="full" id="tr-in" placeholder="Paste Times of India, Hindustan Times, or any English text here..." style="min-height:100px;"></textarea>
         <div class="btn-row">
-          <button class="btn-primary" onclick="translateEN()">Convert to Hindi</button>
-          <button class="btn-secondary" onclick="copyEl('tr-out')">Copy</button>
+          <button class="btn-primary" id="tr-btn" onclick="translateEN()">Convert to Hindi</button>
+          <button class="btn-secondary" onclick="document.getElementById('tr-in').value='';document.getElementById('tr-out').innerHTML='<span class=output-placeholder>Hindi translation will appear here...</span>'">Clear</button>
+          <button class="btn-secondary" onclick="navigator.clipboard.writeText(document.getElementById('tr-out').innerText)">Copy</button>
         </div>
         <div class="output-box" id="tr-out" style="margin-top:10px;"><span class="output-placeholder">Hindi translation will appear here...</span></div>
       </div>
       <div class="card" id="tr-hi2en-panel" style="display:none;">
-        <h3>Hindi → English</h3>
+        <h3>Hindi → English Translator</h3>
+        <p>Paste Hindi text — news, notes, messages, or any content.</p>
         <select class="ctrl" id="hi2en-mode" style="width:100%;margin-bottom:8px;">
           <option value="simple">Simple English</option>
           <option value="formal">Formal English</option>
           <option value="natural">Natural / Conversational</option>
+          <option value="explain">Translate + Explain grammar</option>
+          <option value="bilingual">Hindi + English side by side</option>
         </select>
         <textarea class="full" id="hi2en-in" placeholder="यहाँ हिंदी टेक्स्ट पेस्ट करें..." style="min-height:100px;"></textarea>
         <div class="btn-row">
-          <button class="btn-primary" onclick="translateHI()">Translate to English</button>
-          <button class="btn-secondary" onclick="copyEl('hi2en-out')">Copy</button>
+          <button class="btn-primary" id="hi2en-btn" onclick="translateHI()">Translate to English</button>
+          <button class="btn-secondary" onclick="document.getElementById('hi2en-in').value='';document.getElementById('hi2en-out').innerHTML='<span class=output-placeholder>English translation will appear here...</span>'">Clear</button>
+          <button class="btn-secondary" onclick="navigator.clipboard.writeText(document.getElementById('hi2en-out').innerText)">Copy</button>
         </div>
         <div class="output-box" id="hi2en-out" style="margin-top:10px;"><span class="output-placeholder">English translation will appear here...</span></div>
       </div>
     </div>
   </div>
 
-  <!-- WORLD AI PAGE -->
+  <!-- ====== DAILY NEWS ====== -->
+  <div class="page" id="page-news">
+    <div class="page-scroll">
+      <div class="card">
+        <h3>Quick News Links</h3>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="openLink('https://timesofindia.indiatimes.com/india')">Times of India</button>
+          <button class="btn-primary" onclick="openLink('https://www.hindustantimes.com/latest-news')">Hindustan Times</button>
+          <button class="btn-secondary" onclick="openLink('https://www.livehindustan.com/')">Live Hindustan</button>
+          <button class="btn-secondary" onclick="openLink('https://www.thehindu.com')">The Hindu</button>
+          <button class="btn-secondary" onclick="openLink('https://learningenglish.voanews.com')">VOA Learning</button>
+          <button class="btn-secondary" onclick="openLink('https://www.bbc.co.uk/learningenglish')">BBC English</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>YouTube — English Learning</h3>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input type="text" id="yt-inp" class="ctrl" placeholder="e.g. English tenses Hindi..." onkeydown="if(event.key==='Enter')searchYT()" style="flex:1;"/>
+          <button class="btn-primary" onclick="searchYT()">Search</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="quick-chip" onclick="setYT('English grammar lessons beginners')">Grammar</button>
+          <button class="quick-chip" onclick="setYT('English tenses explained Hindi')">Tenses Hindi</button>
+          <button class="quick-chip" onclick="setYT('spoken English practice')">Spoken English</button>
+          <button class="quick-chip" onclick="setYT('daily English vocabulary')">Vocabulary</button>
+        </div>
+      </div>
+      <div id="m-news-grid"></div>
+    </div>
+  </div>
+
+  <!-- ====== PROFILE ====== -->
+  <div class="page" id="page-profile">
+    <div class="page-scroll">
+      <div class="card">
+        <h3>Profile Photo</h3>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+          <div class="profile-avatar" id="p-avatar" onclick="document.getElementById('p-photo-inp').click()">
+            <span id="p-initials">N</span>
+            <img id="p-img" src="" />
+          </div>
+          <div>
+            <div style="font-size:12px;color:#666;margin-bottom:8px;">Tap circle to upload photo</div>
+            <button class="btn-secondary" style="font-size:12px;" onclick="document.getElementById('p-photo-inp').click()">Upload</button>
+            <button class="btn-secondary" style="font-size:12px;margin-left:6px;" onclick="removeProfilePhoto()">Remove</button>
+          </div>
+        </div>
+        <input type="file" id="p-photo-inp" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)" />
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">Full Name</label><input type="text" id="p-name" class="ctrl" placeholder="Your full name" /></div>
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">Title / Role</label><input type="text" id="p-title" class="ctrl" placeholder="e.g. English Learner, Student" /></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Contact Information</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">Primary Email</label><input type="email" id="p-email1" class="ctrl" placeholder="you@example.com" /></div>
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">Secondary Email</label><input type="email" id="p-email2" class="ctrl" placeholder="work@example.com" /></div>
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">Mobile Number</label><input type="tel" id="p-mobile1" class="ctrl" placeholder="+91 99999 99999" /></div>
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">WhatsApp / Alternate</label><input type="tel" id="p-mobile2" class="ctrl" placeholder="+91 88888 88888" /></div>
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">About Me</label><textarea id="p-bio" class="full" style="min-height:70px;" placeholder="Short bio or notes..."></textarea></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="saveProfile()">Save Profile</button>
+          <button class="btn-secondary" onclick="clearProfile()">Clear All</button>
+        </div>
+        <div id="p-save-msg" style="font-size:12px;color:#1a7a45;margin-top:6px;display:none;">✅ Profile saved!</div>
+      </div>
+      <div class="card">
+        <h3>Settings</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div>
+            <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">Display Mode</label>
+            <select class="ctrl" id="m-display-mode" style="width:100%;" onchange="applyTheme()">
+              <option value="light">Light</option>
+              <option value="warm">Warm</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">Font Size</label>
+            <select class="ctrl" id="m-font-size" style="width:100%;" onchange="applyTheme()">
+              <option value="14">Small (14px)</option>
+              <option value="16" selected>Medium (16px)</option>
+              <option value="18">Large (18px)</option>
+              <option value="20">X-Large (20px)</option>
+            </select>
+          </div>
+          <button class="btn-secondary" onclick="changeKey()">🔑 Change API Key</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== WORLD AI ====== -->
   <div class="page" id="page-worldai">
-    <div style="display:flex;gap:6px;padding:10px 12px;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;">
+    <div class="mode-bar">
       <button class="mode-chip active" onclick="filterMAI('all',this)">All</button>
       <button class="mode-chip" onclick="filterMAI('chat',this)">Chat</button>
       <button class="mode-chip" onclick="filterMAI('image',this)">Image</button>
       <button class="mode-chip" onclick="filterMAI('code',this)">Code</button>
       <button class="mode-chip" onclick="filterMAI('search',this)">Search</button>
+      <button class="mode-chip" onclick="filterMAI('productivity',this)">Tools</button>
       <button class="mode-chip" onclick="filterMAI('voice',this)">Voice</button>
     </div>
     <div class="page-scroll" id="m-ai-list"></div>
@@ -505,10 +633,13 @@
 <!-- BOTTOM NAV -->
 <div id="bottomnav">
   <button class="bnav-btn active" id="bn-chat" onclick="showPage('chat')"><span class="bi">💬</span>Chat</button>
-  <button class="bnav-btn" id="bn-para" onclick="showPage('para')"><span class="bi">✏️</span>Paragraph</button>
-  <button class="bnav-btn" id="bn-tense" onclick="showPage('tense')"><span class="bi">📝</span>Exercise</button>
+  <button class="bnav-btn" id="bn-para" onclick="showPage('para')"><span class="bi">✏️</span>Para</button>
+  <button class="bnav-btn" id="bn-email" onclick="showPage('email')"><span class="bi">✉️</span>Email</button>
+  <button class="bnav-btn" id="bn-tense" onclick="showPage('tense')"><span class="bi">📝</span>Tense</button>
   <button class="bnav-btn" id="bn-translator" onclick="showPage('translator')"><span class="bi">🔄</span>Translate</button>
-  <button class="bnav-btn" id="bn-worldai" onclick="showPage('worldai')"><span class="bi">🌐</span>World AI</button>
+  <button class="bnav-btn" id="bn-news" onclick="showPage('news')"><span class="bi">📰</span>News</button>
+  <button class="bnav-btn" id="bn-profile" onclick="showPage('profile')"><span class="bi">👤</span>Profile</button>
+  <button class="bnav-btn" id="bn-worldai" onclick="showPage('worldai')"><span class="bi">🌐</span>AI Tools</button>
 </div>
 
 <script>
@@ -518,14 +649,16 @@
   let replyMode = 'bilingual';
   let mExData = null, mVocabData = null, mStoryData = null;
   let mSelTense = '';
-  let mFcCards = [], mFcIdx = 0, mFcFlipped = false, mFcKnown = 0;
+  let mFcCards = [], mFcIdx = 0, mFcFlipped = false, mFcKnown = 0, mFcHindi = false;
 
   const SYSTEM = `You are a friendly English grammar tutor for Nik. Help improve English grammar skills.
 Rules:
 - If user writes in Hindi, respond in BOTH Hindi and English.
 - Be warm, encouraging and positive.
 - When correcting grammar: ❌ Wrong → ✅ Correct with brief explanation.
-- The user's name is Nik.`;
+- The user's name is Nik. Use it occasionally to make it personal.
+- Focus: Tenses, Articles, Prepositions, Subject-Verb Agreement, Punctuation, Vocabulary, Common mistakes.
+- End with a small tip or encouragement.`;
 
   const M_TENSES = [
     'Simple Present','Present Continuous','Present Perfect','Present Perfect Continuous',
@@ -535,31 +668,55 @@ Rules:
   ];
 
   const M_AI_TOOLS = [
-    {name:'Claude',company:'Anthropic',cat:'chat',desc:'Advanced AI by Anthropic.',url:'https://claude.ai',icon:'🟠'},
-    {name:'ChatGPT',company:'OpenAI',cat:'chat',desc:'Most popular AI chat assistant.',url:'https://chat.openai.com',icon:'🟢'},
-    {name:'Gemini',company:'Google',cat:'chat',desc:'Google multimodal AI assistant.',url:'https://gemini.google.com',icon:'🔵'},
-    {name:'Copilot',company:'Microsoft',cat:'chat',desc:'Microsoft AI built into Windows.',url:'https://copilot.microsoft.com',icon:'🔷'},
-    {name:'Grok',company:'xAI',cat:'chat',desc:'AI on X with real-time web access.',url:'https://grok.x.ai',icon:'⚡'},
+    {name:'Claude',company:'Anthropic',cat:'chat',desc:'Advanced AI. Excels at analysis, writing, coding.',url:'https://claude.ai',icon:'🟠'},
+    {name:'ChatGPT',company:'OpenAI',cat:'chat',desc:'Most popular AI chat assistant. GPT-4o powered.',url:'https://chat.openai.com',icon:'🟢'},
+    {name:'Gemini',company:'Google',cat:'chat',desc:'Google multimodal AI. Integrates with Google Workspace.',url:'https://gemini.google.com',icon:'🔵'},
+    {name:'Copilot',company:'Microsoft',cat:'chat',desc:'Microsoft AI powered by GPT-4. Built into Windows.',url:'https://copilot.microsoft.com',icon:'🔷'},
+    {name:'Grok',company:'xAI',cat:'chat',desc:'AI on X platform with real-time web access.',url:'https://grok.x.ai',icon:'⚡'},
     {name:'Meta AI',company:'Meta',cat:'chat',desc:'AI on WhatsApp, Instagram, Facebook.',url:'https://www.meta.ai',icon:'🦙'},
-    {name:'Groq',company:'Groq',cat:'chat',desc:'Ultra-fast free AI. Powers this app!',url:'https://groq.com',icon:'🚀'},
-    {name:'Perplexity',company:'Perplexity',cat:'search',desc:'AI search with real-time citations.',url:'https://www.perplexity.ai',icon:'🔍'},
-    {name:'DALL-E',company:'OpenAI',cat:'image',desc:'Generate images from text.',url:'https://openai.com/dall-e-3',icon:'🎨'},
-    {name:'Midjourney',company:'Midjourney',cat:'image',desc:'Create stunning AI art.',url:'https://www.midjourney.com',icon:'🖼️'},
-    {name:'Adobe Firefly',company:'Adobe',cat:'image',desc:'AI image in Adobe Creative Cloud.',url:'https://firefly.adobe.com',icon:'🔥'},
-    {name:'GitHub Copilot',company:'GitHub',cat:'code',desc:'AI code autocomplete in your editor.',url:'https://github.com/features/copilot',icon:'💻'},
-    {name:'Cursor',company:'Cursor',cat:'code',desc:'AI-first code editor.',url:'https://cursor.com',icon:'🖱️'},
-    {name:'Grammarly',company:'Grammarly',cat:'productivity',desc:'AI writing assistant for grammar.',url:'https://www.grammarly.com',icon:'✍️'},
-    {name:'ElevenLabs',company:'ElevenLabs',cat:'voice',desc:'Realistic AI voice generation.',url:'https://elevenlabs.io',icon:'🔊'},
-    {name:'Suno',company:'Suno',cat:'voice',desc:'Generate full songs with AI.',url:'https://suno.ai',icon:'🎵'},
+    {name:'Mistral',company:'Mistral AI',cat:'chat',desc:'European AI with strong multilingual skills.',url:'https://chat.mistral.ai',icon:'🌀'},
+    {name:'Groq',company:'Groq',cat:'chat',desc:'Ultra-fast free AI. Powers this Grammar Agent!',url:'https://groq.com',icon:'🚀'},
+    {name:'Perplexity',company:'Perplexity',cat:'search',desc:'AI-powered search with real-time citations.',url:'https://www.perplexity.ai',icon:'🔍'},
+    {name:'You.com',company:'You.com',cat:'search',desc:'AI search engine with multimodal answers.',url:'https://you.com',icon:'🔎'},
+    {name:'Phind',company:'Phind',cat:'search',desc:'AI search engine optimised for developers.',url:'https://www.phind.com',icon:'🔬'},
+    {name:'DALL-E',company:'OpenAI',cat:'image',desc:'Generate realistic images from text.',url:'https://openai.com/dall-e-3',icon:'🎨'},
+    {name:'Midjourney',company:'Midjourney',cat:'image',desc:'Create stunning AI art from prompts.',url:'https://www.midjourney.com',icon:'🖼️'},
+    {name:'Adobe Firefly',company:'Adobe',cat:'image',desc:'AI image generation in Creative Cloud.',url:'https://firefly.adobe.com',icon:'🔥'},
+    {name:'Stable Diffusion',company:'Stability AI',cat:'image',desc:'Open source image generation AI.',url:'https://stability.ai',icon:'🎭'},
+    {name:'GitHub Copilot',company:'GitHub',cat:'code',desc:'AI pair programmer. Autocompletes code.',url:'https://github.com/features/copilot',icon:'💻'},
+    {name:'Cursor',company:'Cursor',cat:'code',desc:'AI-first code editor built on VSCode.',url:'https://cursor.com',icon:'🖱️'},
+    {name:'Replit AI',company:'Replit',cat:'code',desc:'AI coding in Replit online IDE.',url:'https://replit.com',icon:'🔧'},
+    {name:'Grammarly',company:'Grammarly',cat:'productivity',desc:'AI writing assistant for grammar and tone.',url:'https://www.grammarly.com',icon:'✍️'},
+    {name:'Notion AI',company:'Notion',cat:'productivity',desc:'AI for writing, summarizing, brainstorming.',url:'https://www.notion.so/product/ai',icon:'📋'},
+    {name:'ElevenLabs',company:'ElevenLabs',cat:'voice',desc:'Realistic AI voice generation and TTS.',url:'https://elevenlabs.io',icon:'🔊'},
+    {name:'Otter.ai',company:'Otter',cat:'voice',desc:'AI transcription and meeting notes.',url:'https://otter.ai',icon:'🎤'},
+    {name:'Suno',company:'Suno',cat:'voice',desc:'Generate complete songs with AI.',url:'https://suno.ai',icon:'🎵'},
+  ];
+
+  const NEWS_DATA = [
+    {tag:'grammar',tagClass:'tag-grammar',label:'Grammar',title:'10 Common Grammar Mistakes & How to Fix Them',desc:'Errors Indians make most often — tense confusion, article misuse and more.',url:'https://www.grammarly.com/blog/grammar-mistakes/'},
+    {tag:'vocab',tagClass:'tag-vocab',label:'Vocabulary',title:'Word of the Day — Expand Your Vocabulary',desc:'Learn one new word every day with meaning, pronunciation, and examples.',url:'https://www.merriam-webster.com/word-of-the-day'},
+    {tag:'reading',tagClass:'tag-reading',label:'Reading',title:'Simple English News — Real News in Easy English',desc:'Current news in simple English. Perfect for building reading skills.',url:'https://www.newsinlevels.com'},
+    {tag:'grammar',tagClass:'tag-grammar',label:'Grammar',title:'BBC Learning English — Daily Lessons',desc:'Free daily English lessons from BBC. Grammar, vocabulary, news, conversations.',url:'https://www.bbc.co.uk/learningenglish'},
+    {tag:'practice',tagClass:'tag-practice',label:'Practice',title:'English Grammar Exercises — Free Tests',desc:'Hundreds of free grammar exercises — tenses, articles, prepositions.',url:'https://www.perfect-english-grammar.com'},
+    {tag:'reading',tagClass:'tag-reading',label:'Reading',title:'The Hindu — English Newspaper',desc:'One of India\'s top English newspapers. Reading daily improves grammar fast.',url:'https://www.thehindu.com'},
+    {tag:'grammar',tagClass:'tag-grammar',label:'Grammar',title:'British Council — Tenses Guide',desc:'Clear breakdown of all 12 English tenses with simple rules and examples.',url:'https://learnenglish.britishcouncil.org/grammar/english-grammar-reference/verb-tenses'},
+    {tag:'vocab',tagClass:'tag-vocab',label:'Vocabulary',title:'Vocabulary.com — Learn Words in Context',desc:'Interactive platform to learn new words through real sentence examples.',url:'https://www.vocabulary.com'},
+    {tag:'practice',tagClass:'tag-practice',label:'Practice',title:'Cambridge English — Free Grammar Tests',desc:'Official Cambridge practice tests for all levels.',url:'https://www.cambridgeenglish.org/learning-english/activities-for-learners/'},
+    {tag:'practice',tagClass:'tag-practice',label:'Practice',title:'Duolingo — Daily Practice (Free App)',desc:'Practice English grammar and vocabulary for 10 minutes a day.',url:'https://www.duolingo.com'},
+    {tag:'grammar',tagClass:'tag-grammar',label:'Grammar',title:'Purdue OWL — Complete Grammar Reference',desc:'The internet\'s most trusted grammar guide with clear explanations.',url:'https://owl.purdue.edu/owl/general_writing/grammar/'},
+    {tag:'grammar',tagClass:'tag-grammar',label:'Grammar',title:'VOA Learning English — News for Learners',desc:'News in slow, clear English. Great for listening and reading.',url:'https://learningenglish.voanews.com'},
   ];
 
   // ====== INIT ======
   if (apiKey) {
     document.getElementById('setup').style.display = 'none';
-    addMsg('bot', 'Namaste Nik! 👋\n\nI am your Grammar AI Agent. Ask me anything in English or Hindi!\n\nUse the bottom tabs to switch between Chat, Paragraph Correction, Tense Exercise, Translator, and World AI.');
+    addMsg('bot', 'Namaste Nik! 👋\n\nI am your Grammar AI Agent. Ask me anything in English or Hindi!\n\nUse the bottom tabs to navigate all features.');
   }
   initMTenseButtons();
   renderMAITools('all');
+  renderMNews();
+  loadProfile();
 
   // ====== SETUP ======
   function saveKey() {
@@ -568,7 +725,16 @@ Rules:
     apiKey = k;
     localStorage.setItem('grammar_key', k);
     document.getElementById('setup').style.display = 'none';
-    addMsg('bot', 'Namaste Nik! 👋\n\nI am your Grammar AI Agent. Ask me anything in English or Hindi!\n\nUse the tabs below to navigate.');
+    addMsg('bot', 'Namaste Nik! 👋\n\nI am your Grammar AI Agent. Ready to help!\n\nUse the tabs at the bottom to navigate.');
+  }
+
+  function changeKey() {
+    const k = prompt('Enter new Groq API key (gsk_...):', '');
+    if (!k) return;
+    if (!k.startsWith('gsk_')) { alert('Invalid key. Must start with gsk_'); return; }
+    apiKey = k;
+    localStorage.setItem('grammar_key', k);
+    alert('API key updated!');
   }
 
   // ====== NAVIGATION ======
@@ -577,161 +743,24 @@ Rules:
     document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('page-' + page).classList.add('active');
     document.getElementById('bn-' + page).classList.add('active');
+    if (page === 'tense') { const cur = document.querySelector('.subnav-btn.active'); if (!cur) showSub('exercise'); }
   }
-
-  let mFcHindi = false;
 
   function showSub(sub) {
-    ['exercise','flashcard','vocab','story','timezone','email'].forEach(s => {
-      document.getElementById('sub-' + s).style.display = s === sub ? 'flex' : 'none';
+    ['exercise','flashcard','vocab','story','timezone'].forEach(s => {
+      const el = document.getElementById('sub-' + s);
+      if (el) el.style.display = s === sub ? 'flex' : 'none';
       const btn = document.getElementById('st-' + s);
-      if (btn) {
-        btn.style.borderBottom = s === sub ? '2px solid var(--dark)' : '2px solid transparent';
-        btn.style.color = s === sub ? 'var(--dark)' : 'var(--muted)';
-        btn.style.fontWeight = s === sub ? '500' : '400';
-      }
+      if (btn) { btn.classList.toggle('active', s === sub); }
     });
     if (sub === 'timezone') mRenderWorldClock();
-  }
-
-  // ====== MOBILE FC HINDI + PPT ======
-  function mToggleFCHindi() {
-    mFcHindi = !mFcHindi;
-    const btn = document.getElementById('m-fc-hindi-btn');
-    btn.style.background = mFcHindi ? '#7c3aed' : 'transparent';
-    btn.style.color = mFcHindi ? '#fff' : '#7c3aed';
-    const hiEl = document.getElementById('m-fc-exp-hi');
-    if (hiEl) hiEl.style.display = mFcHindi ? 'block' : 'none';
-  }
-
-  function mDownloadFCPPT() {
-    if (!mFcCards.length) { alert('Generate flashcards first.'); return; }
-    const topic = document.getElementById('m-fc-topic').value;
-    let out = 'FLASHCARD PRESENTATION — ' + topic.toUpperCase() + '\nGrammar AI Agent — Nik\n' + '='.repeat(40) + '\n\n';
-    out += 'Import into PowerPoint / Google Slides — one slide per card.\n' + '='.repeat(40) + '\n\n';
-    mFcCards.forEach((c, i) => {
-      out += `SLIDE ${i+1}\n${'─'.repeat(25)}\n`;
-      out += `[FRONT]\n${c.question}\n\n[BACK]\n${c.answer}\n\n[Explanation]\n${c.explanation||''}\n`;
-      if (c.explanation_hi) out += `[Hindi]\n${c.explanation_hi}\n`;
-      out += '\n';
-    });
-    out += '='.repeat(40) + '\nGrammar AI Agent — Nik | ' + new Date().toLocaleDateString('en-IN');
-    dlTxt(out, 'flashcards-' + topic.replace(/ /g,'-').toLowerCase() + '-ppt.txt');
-  }
-
-  // ====== MOBILE TIMEZONE ======
-  function mSetTZNow() {
-    const now = new Date();
-    const pad = n => String(n).padStart(2,'0');
-    document.getElementById('m-tz-dt').value =
-      `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
-  }
-
-  function mSwapTZ() {
-    const f = document.getElementById('m-tz-from');
-    const t = document.getElementById('m-tz-to');
-    const tmp = f.value; f.value = t.value; t.value = tmp;
-  }
-
-  function mConvertTZ() {
-    const dtVal = document.getElementById('m-tz-dt').value;
-    const fromTZ = document.getElementById('m-tz-from').value;
-    const toTZ = document.getElementById('m-tz-to').value;
-    const result = document.getElementById('m-tz-result');
-    if (!dtVal) { result.textContent = 'Please pick a date & time.'; return; }
-    try {
-      const dt = new Date(dtVal);
-      const fromStr = dt.toLocaleString('en-IN', { timeZone: fromTZ, dateStyle:'full', timeStyle:'short' });
-      const toStr = dt.toLocaleString('en-IN', { timeZone: toTZ, dateStyle:'full', timeStyle:'short' });
-      const fromLabel = fromTZ.split('/').pop().replace(/_/g,' ');
-      const toLabel = toTZ.split('/').pop().replace(/_/g,' ');
-      result.textContent = `FROM (${fromLabel})\n  ${fromStr}\n\nTO (${toLabel})\n  ${toStr}`;
-    } catch(e) { result.textContent = 'Error: ' + e.message; }
-  }
-
-  function mRenderWorldClock() {
-    const zones = [
-      {label:'India (IST)', tz:'Asia/Kolkata'},
-      {label:'UTC', tz:'UTC'},
-      {label:'New York', tz:'America/New_York'},
-      {label:'London', tz:'Europe/London'},
-      {label:'Dubai', tz:'Asia/Dubai'},
-      {label:'Singapore', tz:'Asia/Singapore'},
-      {label:'Tokyo', tz:'Asia/Tokyo'},
-      {label:'Sydney', tz:'Australia/Sydney'},
-    ];
-    const el = document.getElementById('m-world-clock');
-    if (!el) return;
-    const now = new Date();
-    el.innerHTML = zones.map(z => {
-      const time = now.toLocaleTimeString('en-IN', { timeZone: z.tz, hour:'2-digit', minute:'2-digit', second:'2-digit' });
-      const date = now.toLocaleDateString('en-IN', { timeZone: z.tz, weekday:'short', month:'short', day:'numeric' });
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#f5f5f0;border-radius:8px;">
-        <span style="font-size:12px;color:#666;">${z.label}</span>
-        <div style="text-align:right;">
-          <div style="font-size:14px;font-weight:600;color:var(--dark);font-variant-numeric:tabular-nums;">${time}</div>
-          <div style="font-size:10px;color:#aaa;">${date}</div>
-        </div>
-      </div>`;
-    }).join('');
-    if (!window._mTzInterval) {
-      window._mTzInterval = setInterval(() => {
-        if (document.getElementById('sub-timezone')?.style.display !== 'none') mRenderWorldClock();
-      }, 1000);
-    }
-  }
-
-  // ====== MOBILE EMAIL CORRECTION ======
-  function mUpdateEmailWC() {
-    const t = document.getElementById('m-email-in').value.trim();
-    document.getElementById('m-email-wc').textContent = (t ? t.split(/\s+/).length : 0) + ' words';
-  }
-
-  function mClearEmail() {
-    document.getElementById('m-email-in').value = '';
-    document.getElementById('m-email-out').innerHTML = '<span class="output-placeholder">Corrected email + suggestions will appear here...</span>';
-    mUpdateEmailWC();
-  }
-
-  async function mCorrectEmail() {
-    const text = document.getElementById('m-email-in').value.trim();
-    if (!text || !apiKey) { alert(!apiKey ? 'Set API key first.' : 'Paste your email.'); return; }
-    const style = document.getElementById('m-email-style').value;
-    const btn = document.getElementById('m-email-btn');
-    const out = document.getElementById('m-email-out');
-    btn.disabled = true; btn.textContent = 'Correcting...';
-    out.textContent = 'Analysing your email...';
-    const styleDesc = {
-      professional:'professional and polished business tone',
-      formal:'formal and official tone',
-      friendly:'warm and friendly business tone',
-      simple:'simple, clear, and direct language',
-      assertive:'assertive, confident, and decisive tone'
-    };
-    try {
-      const reply = await callGroq([
-        { role:'system', content:`You are an expert English email editor. Your job:
-1. Show "✅ GRAMMAR CORRECTIONS" — list each error: ❌ Original → ✅ Fixed — Reason.
-2. Show "📧 CORRECTED EMAIL" — the fully corrected version.
-3. Show "💼 SUGGESTION 1 (${styleDesc[style]})" — professional rewrite.
-4. Show "💼 SUGGESTION 2 (Concise)" — shorter, punchier rewrite.
-5. Show "💡 TIPS" — 2-3 specific writing tips.` },
-        { role:'user', content:`Correct and improve this email:\n\n${text}` }
-      ], 3000);
-      out.textContent = reply;
-    } catch(e) { out.textContent = 'Error: ' + e.message; }
-    btn.disabled = false; btn.textContent = 'Correct & Suggest';
   }
 
   function showTr(tab) {
     document.getElementById('tr-en2hi-panel').style.display = tab === 'en2hi' ? 'block' : 'none';
     document.getElementById('tr-hi2en-panel').style.display = tab === 'hi2en' ? 'block' : 'none';
-    document.getElementById('tr-en2hi').style.borderBottom = tab === 'en2hi' ? '2px solid var(--dark)' : '2px solid transparent';
-    document.getElementById('tr-hi2en').style.borderBottom = tab === 'hi2en' ? '2px solid var(--dark)' : '2px solid transparent';
-    document.getElementById('tr-en2hi').style.color = tab === 'en2hi' ? 'var(--dark)' : 'var(--muted)';
-    document.getElementById('tr-hi2en').style.color = tab === 'hi2en' ? 'var(--dark)' : 'var(--muted)';
-    document.getElementById('tr-en2hi').style.fontWeight = tab === 'en2hi' ? '500' : '400';
-    document.getElementById('tr-hi2en').style.fontWeight = tab === 'hi2en' ? '500' : '400';
+    document.getElementById('tr-en2hi').classList.toggle('active', tab === 'en2hi');
+    document.getElementById('tr-hi2en').classList.toggle('active', tab === 'hi2en');
   }
 
   // ====== LANG & MODE ======
@@ -753,8 +782,7 @@ Rules:
     const list = document.getElementById('msg-list');
     const div = document.createElement('div');
     div.className = 'msg ' + role;
-    const label = role === 'user' ? 'You' : 'Agent';
-    div.innerHTML = `<span class="msg-label">${label}</span><div class="bubble">${escH(text)}</div>`;
+    div.innerHTML = `<span class="msg-label">${role === 'user' ? 'You' : 'Agent'}</span><div class="bubble">${escH(text)}</div>`;
     list.appendChild(div);
     list.scrollTop = list.scrollHeight;
   }
@@ -762,31 +790,21 @@ Rules:
   function showTyping() {
     const list = document.getElementById('msg-list');
     const div = document.createElement('div');
-    div.id = 'typing-ind';
-    div.className = 'msg bot';
+    div.id = 'typing-ind'; div.className = 'msg bot';
     div.innerHTML = '<span class="msg-label">Agent</span><div class="bubble" style="padding:0"><div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>';
-    list.appendChild(div);
-    list.scrollTop = list.scrollHeight;
+    list.appendChild(div); list.scrollTop = list.scrollHeight;
   }
+  function removeTyping() { const t = document.getElementById('typing-ind'); if (t) t.remove(); }
 
-  function removeTyping() {
-    const t = document.getElementById('typing-ind');
-    if (t) t.remove();
-  }
+  function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }
+  function autoR(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 110) + 'px'; }
+  function useQ(text) { document.getElementById('chat-inp').value = text; sendMsg(); }
 
-  function handleKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
-  }
-
-  function autoR(el) {
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 110) + 'px';
-  }
-
-  function useQ(text) {
-    document.getElementById('chat-inp').value = text;
-    sendMsg();
-  }
+  const modeInstr = {
+    bilingual: 'Respond in English first, then add a Hindi translation/explanation section.',
+    hindi: 'Respond mainly in Hindi but include English examples and corrections.',
+    english: 'Respond in English only.'
+  };
 
   async function sendMsg() {
     const inp = document.getElementById('chat-inp');
@@ -797,23 +815,14 @@ Rules:
     addMsg('user', text);
     chatHistory.push({role:'user', content: text});
     showTyping();
-    const modeInstr = {
-      bilingual: 'Respond in English first, then add a Hindi translation section.',
-      hindi: 'Respond mainly in Hindi but include English examples.',
-      english: 'Respond in English only.'
-    };
     try {
       const reply = await callGroq([
-        {role:'system', content: SYSTEM + '\n' + (modeInstr[replyMode]||'')},
+        {role:'system', content: SYSTEM + '\n\n' + (modeInstr[replyMode]||'')},
         ...chatHistory
-      ], 1200);
+      ], 1500);
       chatHistory.push({role:'assistant', content: reply});
-      removeTyping();
-      addMsg('bot', reply);
-    } catch(e) {
-      removeTyping();
-      addMsg('bot', 'Error: ' + e.message);
-    }
+      removeTyping(); addMsg('bot', reply);
+    } catch(e) { removeTyping(); addMsg('bot', 'Error: ' + e.message); }
     document.getElementById('send-btn').disabled = false;
   }
 
@@ -822,16 +831,12 @@ Rules:
     const t = document.getElementById('para-in').value.trim();
     document.getElementById('wc-label').textContent = (t ? t.split(/\s+/).length : 0) + ' words';
   }
-
   function clearPara() {
     document.getElementById('para-in').value = '';
     document.getElementById('para-out').innerHTML = '<span class="output-placeholder">Corrected paragraph will appear here...</span>';
     updateWC();
   }
-
-  function copyPara() {
-    navigator.clipboard.writeText(document.getElementById('para-out').innerText);
-  }
+  function copyPara() { navigator.clipboard.writeText(document.getElementById('para-out').innerText); }
 
   async function correctPara() {
     const text = document.getElementById('para-in').value.trim();
@@ -840,19 +845,112 @@ Rules:
     const out = document.getElementById('para-out');
     out.textContent = 'Correcting...';
     const modes = {
-      correct:'Correct ONLY grammar errors. Show corrected paragraph then list errors fixed.',
+      correct:'Correct ONLY grammar errors. Show full corrected paragraph then list errors fixed.',
       improve:'Correct grammar AND improve style. Show improved version then explain changes.',
-      formal:'Correct grammar AND rewrite formally. Show formal version.',
-      simple:'Correct grammar AND simplify language.',
+      formal:'Correct grammar AND rewrite in formal tone.',
+      simple:'Correct grammar AND simplify the language.',
       explain:'Correct grammar. Show corrected paragraph then explain EACH error: ❌ Original → ✅ Corrected — Reason:'
     };
     try {
       const reply = await callGroq([
-        {role:'system', content:'You are an expert English grammar corrector. Always show the FULL corrected paragraph first labeled "✅ Corrected Paragraph:". Never skip any error.'},
+        {role:'system', content:'You are an expert English grammar corrector. Always show the FULL corrected paragraph first labeled "✅ Corrected Paragraph:". Never skip any error. Handle unlimited paragraphs.'},
         {role:'user', content: modes[mode] + '\n\nParagraph:\n"' + text + '"'}
-      ], 2500);
+      ], 3000);
       out.textContent = reply;
     } catch(e) { out.textContent = 'Error: ' + e.message; }
+  }
+
+  // ====== EMAIL CORRECTION ======
+  function updateEmailWC() {
+    const t = document.getElementById('email-in').value.trim();
+    document.getElementById('email-wc').textContent = (t ? t.split(/\s+/).length : 0) + ' words';
+  }
+  function clearEmailPage() {
+    document.getElementById('email-in').value = '';
+    document.getElementById('email-out').innerHTML = '<span class="output-placeholder">Corrected email + professional suggestions will appear here...</span>';
+    updateEmailWC();
+  }
+
+  async function correctEmail() {
+    const text = document.getElementById('email-in').value.trim();
+    if (!text || !apiKey) { alert(!apiKey ? 'Set API key first.' : 'Paste your email first.'); return; }
+    const style = document.getElementById('email-style').value;
+    const btn = document.getElementById('email-btn');
+    const out = document.getElementById('email-out');
+    btn.disabled = true; btn.textContent = 'Correcting...';
+    out.textContent = 'Analysing your email...';
+    const styleDesc = {
+      professional:'professional and polished business tone',
+      formal:'formal and official tone suitable for senior management',
+      friendly:'warm and friendly business tone',
+      simple:'simple, clear, and direct language',
+      assertive:'assertive, confident, and decisive tone'
+    };
+    try {
+      const reply = await callGroq([
+        {role:'system', content:`You are an expert English email editor. Your job:
+1. Show "✅ GRAMMAR CORRECTIONS" — list each error: ❌ Original → ✅ Fixed — Reason.
+2. Show "📧 CORRECTED EMAIL" — the fully corrected version.
+3. Show "💼 SUGGESTION 1 (${styleDesc[style]})" — professional rewrite.
+4. Show "💼 SUGGESTION 2 (Concise version)" — shorter, punchier rewrite.
+5. Show "💡 WRITING TIPS" — 2-3 specific tips to improve this email.
+Handle any length email.`},
+        {role:'user', content:`Correct and improve this email:\n\n${text}`}
+      ], 3000);
+      out.textContent = reply;
+    } catch(e) { out.textContent = 'Error: ' + e.message; }
+    btn.disabled = false; btn.textContent = 'Correct & Suggest';
+  }
+
+  // ====== TRANSLATOR ======
+  async function translateEN() {
+    const text = document.getElementById('tr-in').value.trim();
+    const out = document.getElementById('tr-out');
+    if (!text || !apiKey) { alert(!apiKey ? 'Set API key first.' : 'Enter text.'); return; }
+    const btn = document.getElementById('tr-btn');
+    btn.disabled = true; btn.textContent = 'Converting...';
+    out.textContent = 'Converting...';
+    const mode = document.getElementById('tr-mode').value;
+    const modes = {
+      simple_hindi:'Translate into simple, natural Hindi that is easy for any reader to understand.',
+      bilingual:'Translate into Hindi first, then add a short English summary in 2-3 lines.',
+      learning:'Translate into Hindi and keep important English learning keywords in brackets.',
+      bullet:'Rewrite as short Hindi bullet points.',
+      dynamic:'Automatically choose the best output style. Simple Hindi for short text, bullet points for longer text.'
+    };
+    try {
+      const reply = await callGroq([
+        {role:'system', content:'You are a helpful bilingual assistant. ' + (modes[mode]||modes.simple_hindi)},
+        {role:'user', content:'Translate:\n\n' + text}
+      ], 2000);
+      out.textContent = reply;
+    } catch(e) { out.textContent = 'Error: ' + e.message; }
+    btn.disabled = false; btn.textContent = 'Convert to Hindi';
+  }
+
+  async function translateHI() {
+    const text = document.getElementById('hi2en-in').value.trim();
+    const out = document.getElementById('hi2en-out');
+    if (!text || !apiKey) { alert(!apiKey ? 'Set API key first.' : 'Enter Hindi text.'); return; }
+    const btn = document.getElementById('hi2en-btn');
+    btn.disabled = true; btn.textContent = 'Translating...';
+    out.textContent = 'Translating...';
+    const mode = document.getElementById('hi2en-mode').value;
+    const modes = {
+      simple:'Translate into simple, clear English.',
+      formal:'Translate into formal professional English.',
+      natural:'Translate into natural conversational English.',
+      explain:'Translate into English, then explain key grammar points.',
+      bilingual:'Show original Hindi line by line, then English translation below each line.'
+    };
+    try {
+      const reply = await callGroq([
+        {role:'system', content:'You are an expert Hindi to English translator. ' + (modes[mode]||modes.simple)},
+        {role:'user', content:'Translate this Hindi text to English:\n\n' + text}
+      ], 2000);
+      out.textContent = reply;
+    } catch(e) { out.textContent = 'Error: ' + e.message; }
+    btn.disabled = false; btn.textContent = 'Translate to English';
   }
 
   // ====== TENSE EXERCISE ======
@@ -884,8 +982,8 @@ Rules:
     document.getElementById('m-ans-area').style.display = 'none';
     try {
       const reply = await callGroq([
-        {role:'system', content:'You are an English exercise generator. Return ONLY valid JSON, no markdown.'},
-        {role:'user', content:'Generate 15 fill-in-the-blank sentences for: "' + mSelTense + '". Seed: ' + Math.floor(Math.random()*100000) + '. Return ONLY: {"tense":"' + mSelTense + '","questions":[{"no":1,"sentence":"She ___ (go) every day.","hint":"correct form"}],"answers":[{"no":1,"answer":"goes","explanation":"Third person singular needs -s."}]} with 15 items each. Unique daily-life sentences.'}
+        {role:'system', content:'English exercise generator. Return ONLY valid JSON, no markdown.'},
+        {role:'user', content:'Generate 15 fill-in-the-blank sentences for: "' + mSelTense + '". Seed: ' + Math.floor(Math.random()*100000) + '. Return ONLY: {"tense":"' + mSelTense + '","questions":[{"no":1,"sentence":"She ___ (go) every day.","hint":"correct form"}],"answers":[{"no":1,"answer":"goes","explanation":"Third person singular needs -s."}]} with 15 items each.'}
       ], 3000);
       mExData = JSON.parse(reply.replace(/```json|```/g,'').trim());
       mRenderExercise(mExData);
@@ -896,7 +994,7 @@ Rules:
   function mRenderExercise(data) {
     document.getElementById('m-ex-title').textContent = data.tense + ' — 15 Questions';
     document.getElementById('m-qs-list').innerHTML = data.questions.map(q =>
-      `<div class="q-item"><span class="q-num">${q.no}.</span>${escH(q.sentence)} ${q.hint ? `<span style="font-size:11px;color:var(--muted);">(${escH(q.hint)})</span>` : ''}</div>`
+      `<div class="q-item"><span style="font-weight:600;color:var(--dark);margin-right:6px;">${q.no}.</span>${escH(q.sentence)} ${q.hint ? `<span style="font-size:11px;color:var(--muted);">(${escH(q.hint)})</span>` : ''}</div>`
     ).join('');
     document.getElementById('m-qs-area').style.display = 'block';
     document.getElementById('m-ans-area').style.display = 'none';
@@ -905,7 +1003,7 @@ Rules:
   function mShowAnswers() {
     if (!mExData) return;
     document.getElementById('m-ans-list').innerHTML = mExData.answers.map(a =>
-      `<div class="ans-item"><div style="font-size:14px;"><span style="font-weight:600;color:var(--dark);margin-right:6px;">${a.no}.</span>Answer: <span class="ans-word">${escH(a.answer)}</span></div><div class="ans-exp">💡 ${escH(a.explanation)}</div></div>`
+      `<div class="ans-item"><div style="font-size:14px;"><span style="font-weight:600;color:var(--dark);margin-right:6px;">${a.no}.</span>Answer: <span style="color:#1a7a45;font-weight:500;">${escH(a.answer)}</span></div><div class="ans-exp">💡 ${escH(a.explanation)}</div></div>`
     ).join('');
     document.getElementById('m-ans-area').style.display = 'block';
     document.getElementById('m-ans-area').scrollIntoView({behavior:'smooth'});
@@ -922,7 +1020,7 @@ Rules:
     dlTxt(t, 'tense-' + d.tense.replace(/ /g,'-') + '.txt');
   }
 
-  // ====== FLASHCARDS MOBILE ======
+  // ====== FLASHCARDS ======
   async function mGenFlashCards() {
     if (!apiKey) { alert('Set API key first.'); return; }
     const topic = document.getElementById('m-fc-topic').value;
@@ -930,7 +1028,7 @@ Rules:
     document.getElementById('m-fc-area').style.display = 'none';
     try {
       const reply = await callGroq([
-        {role:'system', content:'You are a flashcard generator. Return ONLY valid JSON, no markdown.'},
+        {role:'system', content:'Flashcard generator. Return ONLY valid JSON, no markdown.'},
         {role:'user', content:'Create 10 flashcards for: "' + topic + '". Seed: ' + Math.floor(Math.random()*99999) + '. Return ONLY: {"cards":[{"id":1,"question":"Question?","answer":"Answer","explanation":"Example tip","explanation_hi":"Hindi mein chhoti vyakhya"},...10 items]}'}
       ], 2500);
       const data = JSON.parse(reply.replace(/```json|```/g,'').trim());
@@ -963,6 +1061,28 @@ Rules:
     document.getElementById('m-fc-summary').style.display = 'none';
   }
 
+  function mToggleFCHindi() {
+    mFcHindi = !mFcHindi;
+    const btn = document.getElementById('m-fc-hindi-btn');
+    btn.style.background = mFcHindi ? '#7c3aed' : 'transparent';
+    btn.style.color = mFcHindi ? '#fff' : '#7c3aed';
+    const hiEl = document.getElementById('m-fc-exp-hi');
+    if (hiEl) hiEl.style.display = (mFcHindi && mFcCards[mFcIdx]?.explanation_hi) ? 'block' : 'none';
+  }
+
+  function mDownloadFCPPT() {
+    if (!mFcCards.length) { alert('Generate flashcards first.'); return; }
+    const topic = document.getElementById('m-fc-topic').value;
+    let out = 'FLASHCARD PRESENTATION — ' + topic.toUpperCase() + '\nGrammar AI Agent — Nik\n' + '='.repeat(40) + '\n\nImport into PowerPoint / Google Slides — one slide per card.\n' + '='.repeat(40) + '\n\n';
+    mFcCards.forEach((c, i) => {
+      out += `SLIDE ${i+1}\n${'─'.repeat(25)}\n[FRONT]\n${c.question}\n\n[BACK]\n${c.answer}\n\n[Explanation]\n${c.explanation||''}\n`;
+      if (c.explanation_hi) out += `[Hindi]\n${c.explanation_hi}\n`;
+      out += '\n';
+    });
+    out += '='.repeat(40) + '\nGrammar AI Agent — Nik | ' + new Date().toLocaleDateString('en-IN');
+    dlTxt(out, 'flashcards-' + topic.replace(/ /g,'-').toLowerCase() + '-ppt.txt');
+  }
+
   function mFlipCard() {
     if (mFcFlipped) return;
     mFcFlipped = true;
@@ -970,42 +1090,23 @@ Rules:
     document.getElementById('m-fc-btns').style.display = 'flex';
   }
 
-  function mMarkCard(known) {
-    if (known) mFcKnown++;
-    if (mFcIdx >= mFcCards.length - 1) { mShowFCSummary(); return; }
-    mFcIdx++; mShowFC();
-  }
-
-  function mNextCard() {
-    if (mFcIdx >= mFcCards.length - 1) { mShowFCSummary(); return; }
-    mFcIdx++; mShowFC();
-  }
-
+  function mMarkCard(known) { if (known) mFcKnown++; if (mFcIdx >= mFcCards.length-1) { mShowFCSummary(); return; } mFcIdx++; mShowFC(); }
+  function mNextCard() { if (mFcIdx >= mFcCards.length-1) { mShowFCSummary(); return; } mFcIdx++; mShowFC(); }
   function mPrevCard() { if (mFcIdx > 0) { mFcIdx--; mShowFC(); } }
-
   function mShuffleCards() {
-    for (let i = mFcCards.length-1; i > 0; i--) {
-      const j = Math.floor(Math.random()*(i+1));
-      [mFcCards[i], mFcCards[j]] = [mFcCards[j], mFcCards[i]];
-    }
+    for (let i = mFcCards.length-1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [mFcCards[i],mFcCards[j]] = [mFcCards[j],mFcCards[i]]; }
     mFcIdx = 0; mFcFlipped = false; mShowFC();
   }
-
-  function mRestartCards() {
-    mFcIdx = 0; mFcFlipped = false; mFcKnown = 0;
-    document.getElementById('m-fc-summary').style.display = 'none';
-    mShowFC();
-  }
-
+  function mRestartCards() { mFcIdx = 0; mFcFlipped = false; mFcKnown = 0; document.getElementById('m-fc-summary').style.display = 'none'; mShowFC(); }
   function mShowFCSummary() {
-    const pct = Math.round(mFcKnown / mFcCards.length * 100);
+    const pct = Math.round(mFcKnown/mFcCards.length*100);
     document.getElementById('m-fc-btns').style.display = 'none';
     document.getElementById('m-fc-inner').style.transform = '';
-    document.getElementById('m-fc-sum-text').textContent = 'You knew ' + mFcKnown + ' of ' + mFcCards.length + ' (' + pct + '%). ' + (pct >= 80 ? 'Excellent! 🎉' : 'Keep practising!');
+    document.getElementById('m-fc-sum-text').textContent = 'You knew ' + mFcKnown + ' of ' + mFcCards.length + ' (' + pct + '%). ' + (pct >= 80 ? 'Excellent! 🎉' : pct >= 50 ? 'Good effort! Keep practising.' : 'Keep going — practice makes perfect!');
     document.getElementById('m-fc-summary').style.display = 'block';
   }
 
-  // ====== VOCAB MOBILE ======
+  // ====== VOCABULARY ======
   async function mGenVocab() {
     if (!apiKey) { alert('Set API key first.'); return; }
     const level = document.getElementById('m-vocab-level').value;
@@ -1014,7 +1115,7 @@ Rules:
     try {
       const reply = await callGroq([
         {role:'system', content:'Vocabulary teacher. Return ONLY valid JSON, no markdown.'},
-        {role:'user', content:'Generate 10 unique ' + level + '-level words. Seed: ' + Math.floor(Math.random()*99999) + '. Return: {"level":"' + level + '","words":[{"word":"accomplish","type":"verb","meaning":"to complete successfully","example1":"She accomplished her goal.","example2":"Hard work helps accomplish great things."},...10 items]}'}
+        {role:'user', content:'Generate 10 unique ' + level + '-level English words. Seed: ' + Math.floor(Math.random()*99999) + '. Return: {"words":[{"word":"accomplish","type":"verb","meaning":"to complete successfully","example1":"She accomplished her goal.","example2":"Hard work helps accomplish great things."},...10 items]}'}
       ], 2500);
       mVocabData = JSON.parse(reply.replace(/```json|```/g,'').trim());
       mRenderVocab(mVocabData);
@@ -1036,13 +1137,13 @@ Rules:
 
   function mDownloadVocab() {
     if (!mVocabData) { alert('Generate vocabulary first.'); return; }
-    let t = 'VOCABULARY — ' + mVocabData.level.toUpperCase() + '\n' + '='.repeat(40) + '\n\n';
+    let t = 'VOCABULARY\n' + '='.repeat(40) + '\n\n';
     (mVocabData.words||[]).forEach((w,i) => { t += (i+1) + '. ' + w.word + ' (' + w.type + ')\n   ' + w.meaning + '\n   1. ' + w.example1 + '\n   2. ' + w.example2 + '\n\n'; });
     t += 'Grammar AI Agent — Nik | ' + new Date().toLocaleDateString('en-IN');
-    dlTxt(t, 'vocab-' + mVocabData.level + '.txt');
+    dlTxt(t, 'vocabulary.txt');
   }
 
-  // ====== STORY MOBILE ======
+  // ====== STORY ======
   async function mGenStory() {
     if (!apiKey) { alert('Set API key first.'); return; }
     const topic = document.getElementById('m-story-topic').value;
@@ -1055,10 +1156,7 @@ Rules:
       ], 2000);
       mStoryData = JSON.parse(reply.replace(/```json|```/g,'').trim());
       mRenderStory(mStoryData);
-    } catch(e) {
-      document.getElementById('m-story-loading').style.display = 'none';
-      alert('Error: ' + e.message);
-    }
+    } catch(e) { document.getElementById('m-story-loading').style.display='none'; alert('Error: '+e.message); }
   }
 
   function mRenderStory(data) {
@@ -1073,61 +1171,86 @@ Rules:
   function mDownloadStory() {
     if (!mStoryData) { alert('Generate a story first.'); return; }
     const d = mStoryData;
-    const t = d.title + '\n' + '='.repeat(d.title.length) + '\n' + d.topic + ' | ' + d.readingTime + '\n\n' + d.story + '\n\n' + '-'.repeat(30) + '\nGrammar: ' + d.grammarFocus + '\nLesson: ' + d.lesson + '\n\nGrammar AI Agent — Nik | ' + new Date().toLocaleDateString('en-IN');
+    const t = d.title + '\n' + '='.repeat(d.title.length) + '\n' + d.topic + ' | ' + d.readingTime + '\n\n' + d.story + '\n\n---\nGrammar: ' + d.grammarFocus + '\nLesson: ' + d.lesson + '\n\nGrammar AI Agent — Nik | ' + new Date().toLocaleDateString('en-IN');
     dlTxt(t, 'story-' + d.topic.replace(/ /g,'-') + '.txt');
   }
 
-  // ====== TRANSLATOR ======
-  async function translateEN() {
-    const text = document.getElementById('tr-in').value.trim();
-    const out = document.getElementById('tr-out');
-    if (!text || !apiKey) { alert(!apiKey ? 'Set API key first.' : 'Enter text.'); return; }
-    out.textContent = 'Translating...';
-    const mode = document.getElementById('tr-mode').value;
-    const modes = {
-      simple_hindi:'Translate into simple, natural Hindi.',
-      bilingual:'Translate into Hindi, then add a 2-3 line English summary.',
-      bullet:'Rewrite as short Hindi bullet points.'
-    };
-    try {
-      const reply = await callGroq([
-        {role:'system', content:'You are a bilingual translator. ' + (modes[mode]||modes.simple_hindi)},
-        {role:'user', content:'Translate:\n\n' + text}
-      ], 1500);
-      out.textContent = reply;
-    } catch(e) { out.textContent = 'Error: ' + e.message; }
+  // ====== TIMEZONE ======
+  function mSetTZNow() {
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    document.getElementById('m-tz-dt').value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
   }
 
-  async function translateHI() {
-    const text = document.getElementById('hi2en-in').value.trim();
-    const out = document.getElementById('hi2en-out');
-    if (!text || !apiKey) { alert(!apiKey ? 'Set API key first.' : 'Enter Hindi text.'); return; }
-    out.textContent = 'Translating...';
-    const mode = document.getElementById('hi2en-mode').value;
-    const modes = {
-      simple:'Translate into simple, clear English.',
-      formal:'Translate into formal professional English.',
-      natural:'Translate into natural conversational English.'
-    };
-    try {
-      const reply = await callGroq([
-        {role:'system', content:'You are an expert Hindi to English translator. ' + (modes[mode]||modes.simple)},
-        {role:'user', content:'Translate this Hindi text to English:\n\n' + text}
-      ], 1500);
-      out.textContent = reply;
-    } catch(e) { out.textContent = 'Error: ' + e.message; }
+  function mSwapTZ() {
+    const f = document.getElementById('m-tz-from'), t = document.getElementById('m-tz-to');
+    const tmp = f.value; f.value = t.value; t.value = tmp;
   }
+
+  function mConvertTZ() {
+    const dtVal = document.getElementById('m-tz-dt').value;
+    const fromTZ = document.getElementById('m-tz-from').value;
+    const toTZ = document.getElementById('m-tz-to').value;
+    const result = document.getElementById('m-tz-result');
+    if (!dtVal) { result.textContent = 'Please pick a date & time first.'; return; }
+    try {
+      const dt = new Date(dtVal);
+      const fromStr = dt.toLocaleString('en-IN', {timeZone:fromTZ, dateStyle:'full', timeStyle:'short'});
+      const toStr = dt.toLocaleString('en-IN', {timeZone:toTZ, dateStyle:'full', timeStyle:'short'});
+      const fromLabel = fromTZ.split('/').pop().replace(/_/g,' ');
+      const toLabel = toTZ.split('/').pop().replace(/_/g,' ');
+      result.textContent = `FROM  (${fromLabel})\n  ${fromStr}\n\nTO    (${toLabel})\n  ${toStr}`;
+    } catch(e) { result.textContent = 'Error: ' + e.message; }
+  }
+
+  function mRenderWorldClock() {
+    const zones = [
+      {label:'India (IST)',tz:'Asia/Kolkata'},{label:'UTC',tz:'UTC'},
+      {label:'New York',tz:'America/New_York'},{label:'London',tz:'Europe/London'},
+      {label:'Dubai',tz:'Asia/Dubai'},{label:'Singapore',tz:'Asia/Singapore'},
+      {label:'Tokyo',tz:'Asia/Tokyo'},{label:'Sydney',tz:'Australia/Sydney'},
+    ];
+    const el = document.getElementById('m-world-clock'); if (!el) return;
+    const now = new Date();
+    el.innerHTML = zones.map(z => {
+      const time = now.toLocaleTimeString('en-IN', {timeZone:z.tz, hour:'2-digit', minute:'2-digit', second:'2-digit'});
+      const date = now.toLocaleDateString('en-IN', {timeZone:z.tz, weekday:'short', month:'short', day:'numeric'});
+      return `<div class="wc-row"><span style="font-size:12px;color:#666;">${z.label}</span><div style="text-align:right;"><div style="font-size:14px;font-weight:600;color:var(--dark);font-variant-numeric:tabular-nums;">${time}</div><div style="font-size:10px;color:#aaa;">${date}</div></div></div>`;
+    }).join('');
+    if (!window._mTzInterval) {
+      window._mTzInterval = setInterval(() => { if (document.getElementById('sub-timezone')?.style.display !== 'none') mRenderWorldClock(); }, 1000);
+    }
+  }
+
+  // ====== NEWS ======
+  function renderMNews() {
+    const el = document.getElementById('m-news-grid'); if (!el) return;
+    el.innerHTML = NEWS_DATA.map(n => `
+      <div class="news-card-m">
+        <span class="news-tag-m ${n.tagClass}">${n.label}</span>
+        <div style="font-size:14px;font-weight:500;margin-bottom:4px;color:var(--text);">${escH(n.title)}</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;">${escH(n.desc)}</div>
+        <button class="btn-primary" style="width:100%;font-size:12px;padding:8px;" onclick="openLink('${n.url}')">Open →</button>
+      </div>`).join('');
+  }
+
+  function searchYT() {
+    const q = document.getElementById('yt-inp').value.trim();
+    if (!q) return;
+    openLink('https://www.youtube.com/results?search_query=' + encodeURIComponent(q + ' english learning'));
+  }
+
+  function setYT(q) { document.getElementById('yt-inp').value = q; searchYT(); }
 
   // ====== WORLD AI ======
   function renderMAITools(filter) {
-    const list = document.getElementById('m-ai-list');
-    if (!list) return;
+    const list = document.getElementById('m-ai-list'); if (!list) return;
     const filtered = filter === 'all' ? M_AI_TOOLS : M_AI_TOOLS.filter(a => a.cat === filter);
     list.innerHTML = filtered.map(a => `
       <div class="ai-card">
         <span class="ai-icon">${a.icon}</span>
         <div class="ai-info">
-          <div class="ai-name">${a.name} <span class="cat-badge">${a.cat}</span></div>
+          <div class="ai-name">${a.name} <span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:9px;font-weight:500;background:#f5f5f0;color:#666;margin-left:2px;">${a.cat}</span></div>
           <div class="ai-company">${a.company}</div>
           <div class="ai-desc">${a.desc}</div>
         </div>
@@ -1141,12 +1264,78 @@ Rules:
     renderMAITools(filter);
   }
 
+  // ====== PROFILE ======
+  function saveProfile() {
+    const fields = [['p-name','name'],['p-title','title'],['p-email1','email1'],['p-email2','email2'],['p-mobile1','mobile1'],['p-mobile2','mobile2'],['p-bio','bio']];
+    fields.forEach(([id, key]) => { const el = document.getElementById(id); if (el) localStorage.setItem('grammar_m_' + key, el.value); });
+    const msg = document.getElementById('p-save-msg');
+    if (msg) { msg.style.display='block'; setTimeout(()=>msg.style.display='none', 2500); }
+    updateAvatarInitials();
+  }
+
+  function loadProfile() {
+    const fields = [['p-name','name'],['p-title','title'],['p-email1','email1'],['p-email2','email2'],['p-mobile1','mobile1'],['p-mobile2','mobile2'],['p-bio','bio']];
+    fields.forEach(([id, key]) => { const el = document.getElementById(id); const v = localStorage.getItem('grammar_m_' + key); if (el && v) el.value = v; });
+    const photo = localStorage.getItem('grammar_m_photo');
+    if (photo) { document.getElementById('p-img').src = photo; document.getElementById('p-img').style.display = 'block'; document.getElementById('p-initials').style.display = 'none'; }
+    updateAvatarInitials();
+  }
+
+  function updateAvatarInitials() {
+    const name = document.getElementById('p-name')?.value.trim();
+    const el = document.getElementById('p-initials');
+    if (el && name) el.textContent = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  }
+
+  function handleProfilePhoto(event) {
+    const file = event.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = e.target.result;
+      localStorage.setItem('grammar_m_photo', data);
+      document.getElementById('p-img').src = data;
+      document.getElementById('p-img').style.display = 'block';
+      document.getElementById('p-initials').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeProfilePhoto() {
+    localStorage.removeItem('grammar_m_photo');
+    document.getElementById('p-img').src = '';
+    document.getElementById('p-img').style.display = 'none';
+    document.getElementById('p-initials').style.display = 'block';
+  }
+
+  function clearProfile() {
+    if (!confirm('Clear all profile data?')) return;
+    ['name','title','email1','email2','mobile1','mobile2','bio'].forEach(k => {
+      localStorage.removeItem('grammar_m_' + k);
+      const id = 'p-' + (k === 'email1' ? 'email1' : k === 'email2' ? 'email2' : k === 'mobile1' ? 'mobile1' : k === 'mobile2' ? 'mobile2' : k);
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    removeProfilePhoto();
+  }
+
+  // ====== THEME ======
+  function applyTheme() {
+    const mode = document.getElementById('m-display-mode')?.value || 'light';
+    const size = document.getElementById('m-font-size')?.value || '16';
+    const themes = {
+      light: {bg:'#f5f5f0', text:'#1a1a1a'},
+      warm: {bg:'#f7f1e5', text:'#2b2118'},
+      dark: {bg:'#111', text:'#f0f0f0'}
+    };
+    const t = themes[mode] || themes.light;
+    document.body.style.background = t.bg;
+    document.body.style.color = t.text;
+    document.body.style.fontSize = size + 'px';
+    localStorage.setItem('grammar_m_theme', mode);
+    localStorage.setItem('grammar_m_fontsize', size);
+  }
+
   // ====== SHARED UTILS ======
   function openLink(url) { window.open(url, '_blank'); }
-
-  function copyEl(id) {
-    navigator.clipboard.writeText(document.getElementById(id).innerText);
-  }
 
   function escH(text) {
     if (!text) return '';
@@ -1156,9 +1345,7 @@ Rules:
   function dlTxt(content, filename) {
     const blob = new Blob([content], {type:'text/plain'});
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    a.click();
+    a.href = URL.createObjectURL(blob); a.download = filename; a.click();
     URL.revokeObjectURL(a.href);
   }
 
@@ -1166,13 +1353,20 @@ Rules:
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {'Content-Type':'application/json','Authorization':'Bearer ' + apiKey},
-      body: JSON.stringify({model:'llama-3.3-70b-versatile', max_tokens: maxTokens||1200, messages})
+      body: JSON.stringify({model:'llama-3.3-70b-versatile', max_tokens: maxTokens||1500, messages})
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
     if (!data.choices?.[0]?.message?.content) throw new Error('No response from Groq.');
     return data.choices[0].message.content;
   }
+
+  // Load saved theme
+  const savedTheme = localStorage.getItem('grammar_m_theme');
+  const savedSize = localStorage.getItem('grammar_m_fontsize');
+  if (savedTheme && document.getElementById('m-display-mode')) document.getElementById('m-display-mode').value = savedTheme;
+  if (savedSize && document.getElementById('m-font-size')) document.getElementById('m-font-size').value = savedSize;
+  if (savedTheme || savedSize) applyTheme();
 </script>
 </body>
 </html>
