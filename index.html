@@ -145,28 +145,6 @@
     .loading{text-align:center;padding:24px;color:var(--muted);font-size:13px;}
     ::-webkit-scrollbar{width:3px;}.`
     ::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px;}
-
-    /* EMAIL PAGE */
-    .email-type-btn{flex:1;padding:9px 6px;border:1px solid var(--border);border-radius:9px;font-size:12px;background:#fff;color:#555;cursor:pointer;text-align:center;transition:all 0.15s;}
-    .email-type-btn.sel{background:var(--dark);color:#fff;border-color:var(--dark);}
-    .suggestion-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
-    .suggestion-label{font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
-    .suggestion-body{font-size:14px;line-height:1.7;white-space:pre-wrap;color:var(--text);}
-    .suggestion-footer{display:flex;gap:8px;margin-top:10px;}
-
-    /* NEWS PAGE */
-    .news-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
-    .news-tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
-    .tag-grammar{background:#e8f4fd;color:#1a6fa8;}
-    .tag-vocab{background:#e8fdf0;color:#1a7a45;}
-    .tag-reading{background:#fdf4e8;color:#a86a1a;}
-    .tag-news{background:#f0e8fd;color:#6a1aa8;}
-    .tag-practice{background:#fde8e8;color:#a81a1a;}
-    .news-title{font-size:14px;font-weight:500;line-height:1.4;margin-bottom:5px;color:var(--text);}
-    .news-desc{font-size:12px;color:#777;line-height:1.5;margin-bottom:8px;}
-    .news-footer{display:flex;align-items:center;justify-content:space-between;}
-    .news-source{font-size:11px;color:#aaa;}
-    .news-open{padding:5px 12px;background:var(--dark);color:#fff;border:none;border-radius:7px;font-size:11px;cursor:pointer;}
   </style>
 </head>
 <body>
@@ -259,7 +237,6 @@
       <button id="st-flashcard" onclick="showSub('flashcard')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">🃏 FlashCards</button>
       <button id="st-vocab" onclick="showSub('vocab')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">📖 Vocab</button>
       <button id="st-story" onclick="showSub('story')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">📚 Story</button>
-      <button id="st-timezone" onclick="showSub('timezone')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">🕐 Timezone</button>
     </div>
 
     <!-- Exercise Sub -->
@@ -332,9 +309,6 @@
           <button onclick="mShuffleCards()">🔀</button>
           <button onclick="mNextCard()">Next →</button>
         </div>
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;">
-          <button class="btn-secondary" style="font-size:12px;padding:6px 12px;" onclick="mDownloadFlashCards()">Download Cards</button>
-        </div>
         <div id="m-fc-summary" style="display:none;text-align:center;margin-top:12px;">
           <div style="font-size:24px;margin-bottom:6px;">🎉</div>
           <div style="font-size:14px;font-weight:500;margin-bottom:4px;">Round Complete!</div>
@@ -390,138 +364,6 @@
     </div>
   </div>
 
-    </div>
-
-    <!-- Timezone Sub -->
-    <div class="page-scroll" id="sub-timezone" style="display:none;">
-      <div class="card">
-        <h3>Time Zone Converter</h3>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px;">
-          <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Date & Time</div>
-            <input type="datetime-local" id="tz-datetime" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;outline:none;" />
-          </div>
-          <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">From Timezone</div>
-            <select id="tz-from" class="ctrl" style="width:100%;">
-              <option value="Asia/Kolkata">India (IST)</option>
-              <option value="UTC">UTC</option>
-              <option value="America/New_York">New York (EST)</option>
-              <option value="America/Los_Angeles">Los Angeles (PST)</option>
-              <option value="Europe/London">London (GMT)</option>
-              <option value="Europe/Paris">Paris (CET)</option>
-              <option value="Asia/Dubai">Dubai (GST)</option>
-              <option value="Asia/Singapore">Singapore (SGT)</option>
-              <option value="Asia/Tokyo">Tokyo (JST)</option>
-              <option value="Australia/Sydney">Sydney (AEST)</option>
-            </select>
-          </div>
-          <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">To Timezone</div>
-            <select id="tz-to" class="ctrl" style="width:100%;">
-              <option value="UTC">UTC</option>
-              <option value="Asia/Kolkata">India (IST)</option>
-              <option value="America/New_York">New York (EST)</option>
-              <option value="America/Los_Angeles">Los Angeles (PST)</option>
-              <option value="Europe/London">London (GMT)</option>
-              <option value="Europe/Paris">Paris (CET)</option>
-              <option value="Asia/Dubai">Dubai (GST)</option>
-              <option value="Asia/Singapore">Singapore (SGT)</option>
-              <option value="Asia/Tokyo">Tokyo (JST)</option>
-              <option value="Australia/Sydney">Sydney (AEST)</option>
-            </select>
-          </div>
-        </div>
-        <div class="btn-row">
-          <button class="btn-primary" onclick="convertTZ()">Convert Time</button>
-          <button class="btn-secondary" onclick="setNowTZ()">Use Now</button>
-        </div>
-        <div id="tz-result" class="output-box" style="margin-top:12px;display:none;"></div>
-      </div>
-      <div class="card">
-        <h3>World Clock</h3>
-        <div id="world-clock" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- EMAIL CORRECTION PAGE -->
-  <div class="page" id="page-email">
-    <div style="display:flex;border-bottom:1px solid var(--border);background:#fff;flex-shrink:0;overflow-x:auto;padding:8px 12px;gap:6px;">
-      <button class="email-type-btn sel" id="et-professional" onclick="setEmailType('professional',this)">Professional</button>
-      <button class="email-type-btn" id="et-casual" onclick="setEmailType('casual',this)">Casual</button>
-      <button class="email-type-btn" id="et-formal" onclick="setEmailType('formal',this)">Formal</button>
-      <button class="email-type-btn" id="et-apology" onclick="setEmailType('apology',this)">Apology</button>
-      <button class="email-type-btn" id="et-followup" onclick="setEmailType('followup',this)">Follow-up</button>
-    </div>
-    <div class="page-scroll">
-      <div class="card">
-        <h3>Your Email Draft</h3>
-        <input type="text" id="email-subject-in" placeholder="Subject line (optional)..." style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;margin-bottom:8px;" />
-        <textarea class="full" id="email-body-in" placeholder="Paste or type your email here... Any length, any number of paragraphs!" style="min-height:150px;" oninput="updateEmailWC()"></textarea>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px;" id="email-wc-label">0 words</div>
-        <div class="btn-row" style="margin-top:10px;">
-          <button class="btn-primary" onclick="correctEmail()">✉️ Correct Email</button>
-          <button class="btn-secondary" onclick="clearEmail()">Clear</button>
-          <button class="btn-secondary" onclick="downloadEmail()">Download</button>
-        </div>
-      </div>
-
-      <div id="email-loading" class="loading" style="display:none;">Analysing your email...</div>
-
-      <div id="email-results" style="display:none;">
-        <!-- Grammar check summary -->
-        <div class="card" id="email-summary-card">
-          <div class="suggestion-label">Grammar Check Summary</div>
-          <div id="email-summary" class="suggestion-body"></div>
-        </div>
-        <!-- Suggestion 1 -->
-        <div class="suggestion-card">
-          <div class="suggestion-label">✅ Corrected Version</div>
-          <div id="email-corrected" class="suggestion-body"></div>
-          <div class="suggestion-footer">
-            <button class="btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="copyEmailSuggestion('email-corrected')">Copy</button>
-          </div>
-        </div>
-        <!-- Suggestion 2 -->
-        <div class="suggestion-card">
-          <div class="suggestion-label">💡 Improved Version</div>
-          <div id="email-improved" class="suggestion-body"></div>
-          <div class="suggestion-footer">
-            <button class="btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="copyEmailSuggestion('email-improved')">Copy</button>
-          </div>
-        </div>
-        <!-- Suggestion 3 -->
-        <div class="suggestion-card">
-          <div class="suggestion-label">🌟 Polished Version</div>
-          <div id="email-polished" class="suggestion-body"></div>
-          <div class="suggestion-footer">
-            <button class="btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="copyEmailSuggestion('email-polished')">Copy</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- DAILY NEWS PAGE -->
-  <div class="page" id="page-news">
-    <div style="display:flex;gap:6px;padding:10px 12px;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;">
-      <button class="mode-chip active" id="nf-all" onclick="filterMNews('all',this)">All</button>
-      <button class="mode-chip" onclick="filterMNews('grammar',this)">Grammar</button>
-      <button class="mode-chip" onclick="filterMNews('vocab',this)">Vocab</button>
-      <button class="mode-chip" onclick="filterMNews('reading',this)">Reading</button>
-      <button class="mode-chip" onclick="filterMNews('news',this)">News EN</button>
-      <button class="mode-chip" onclick="filterMNews('practice',this)">Practice</button>
-    </div>
-    <!-- Quick links -->
-    <div style="display:flex;gap:8px;padding:10px 12px;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;">
-      <button class="quick-chip" onclick="openLink('https://timesofindia.indiatimes.com/india')">Times of India</button>
-      <button class="quick-chip" onclick="openLink('https://www.hindustantimes.com/latest-news')">Hindustan Times</button>
-      <button class="quick-chip" onclick="openLink('https://www.bbc.co.uk/learningenglish')">BBC Learning</button>
-    </div>
-    <div class="page-scroll" id="m-news-list"></div>
-  </div>
-
   <!-- TRANSLATOR PAGE -->
   <div class="page" id="page-translator">
     <div style="display:flex;border-bottom:1px solid var(--border);background:#fff;flex-shrink:0;">
@@ -575,15 +417,13 @@
 
 </div>
 
-<!-- BOTTOM NAV — 6 tabs, smaller font -->
-<div id="bottomnav" style="overflow-x:auto;">
+<!-- BOTTOM NAV -->
+<div id="bottomnav">
   <button class="bnav-btn active" id="bn-chat" onclick="showPage('chat')"><span class="bi">💬</span>Chat</button>
   <button class="bnav-btn" id="bn-para" onclick="showPage('para')"><span class="bi">✏️</span>Paragraph</button>
   <button class="bnav-btn" id="bn-tense" onclick="showPage('tense')"><span class="bi">📝</span>Exercise</button>
-  <button class="bnav-btn" id="bn-email" onclick="showPage('email')"><span class="bi">✉️</span>Email</button>
-  <button class="bnav-btn" id="bn-news" onclick="showPage('news')"><span class="bi">📰</span>News</button>
   <button class="bnav-btn" id="bn-translator" onclick="showPage('translator')"><span class="bi">🔄</span>Translate</button>
-  <button class="bnav-btn" id="bn-worldai" onclick="showPage('worldai')"><span class="bi">🌐</span>AI</button>
+  <button class="bnav-btn" id="bn-worldai" onclick="showPage('worldai')"><span class="bi">🌐</span>World AI</button>
 </div>
 
 <script>
@@ -594,8 +434,6 @@
   let mExData = null, mVocabData = null, mStoryData = null;
   let mSelTense = '';
   let mFcCards = [], mFcIdx = 0, mFcFlipped = false, mFcKnown = 0;
-  let emailType = 'professional';
-  let currentEmailData = null;
 
   const SYSTEM = `You are a friendly English grammar tutor for Nik. Help improve English grammar skills.
 Rules:
@@ -633,12 +471,10 @@ Rules:
   // ====== INIT ======
   if (apiKey) {
     document.getElementById('setup').style.display = 'none';
-    addMsg('bot', 'Namaste Nik! 👋\n\nI am your Grammar AI Agent. Ask me anything in English or Hindi!\n\nUse the bottom tabs — Chat, Paragraph, Exercise, Email, News, Translate, World AI.');
+    addMsg('bot', 'Namaste Nik! 👋\n\nI am your Grammar AI Agent. Ask me anything in English or Hindi!\n\nUse the bottom tabs to switch between Chat, Paragraph Correction, Tense Exercise, Translator, and World AI.');
   }
   initMTenseButtons();
   renderMAITools('all');
-  renderMNews('all');
-  setNowTZ();
 
   // ====== SETUP ======
   function saveKey() {
@@ -659,9 +495,8 @@ Rules:
   }
 
   function showSub(sub) {
-    ['exercise','flashcard','vocab','story','timezone'].forEach(s => {
-      const el = document.getElementById('sub-' + s);
-      if (el) el.style.display = s === sub ? 'flex' : 'none';
+    ['exercise','flashcard','vocab','story'].forEach(s => {
+      document.getElementById('sub-' + s).style.display = s === sub ? 'flex' : 'none';
       const btn = document.getElementById('st-' + s);
       if (btn) {
         btn.style.borderBottom = s === sub ? '2px solid var(--dark)' : '2px solid transparent';
@@ -669,7 +504,6 @@ Rules:
         btn.style.fontWeight = s === sub ? '500' : '400';
       }
     });
-    if (sub === 'timezone') updateWorldClock();
   }
 
   function showTr(tab) {
@@ -879,12 +713,11 @@ Rules:
     document.getElementById('m-fc-area').style.display = 'none';
     try {
       const reply = await callGroq([
-        {role:'system', content:'You are a bilingual flashcard generator. Return ONLY valid JSON, no markdown.'},
-        {role:'user', content:'Create 10 flashcards for: "' + topic + '". Seed: ' + Math.floor(Math.random()*99999) + '. Return ONLY: {"topic":"' + topic + '","cards":[{"id":1,"question":"Question?","answer":"Answer","explanation":"English tip or example","explanation_hindi":"हिंदी में स्पष्टीकरण — आसान भाषा में"},...10 items]}. All unique, educational, and practical. Hindi explanation must be simple and clear.'}
-      ], 2500);
+        {role:'system', content:'You are a flashcard generator. Return ONLY valid JSON, no markdown.'},
+        {role:'user', content:'Create 10 flashcards for: "' + topic + '". Seed: ' + Math.floor(Math.random()*99999) + '. Return ONLY: {"cards":[{"id":1,"question":"Question?","answer":"Answer","explanation":"Example tip"},...10 items]}'}
+      ], 2000);
       const data = JSON.parse(reply.replace(/```json|```/g,'').trim());
       mFcCards = data.cards || [];
-      mFcCards._topic = data.topic || topic;
       mFcIdx = 0; mFcFlipped = false; mFcKnown = 0;
       mShowFC();
       document.getElementById('m-fc-area').style.display = 'block';
@@ -898,20 +731,7 @@ Rules:
     const c = mFcCards[mFcIdx];
     document.getElementById('m-fc-q').textContent = c.question;
     document.getElementById('m-fc-a').textContent = c.answer;
-    const expEl = document.getElementById('m-fc-exp');
-    expEl.innerHTML = '';
-    if (c.explanation) {
-      const engLine = document.createElement('div');
-      engLine.textContent = c.explanation;
-      engLine.style.cssText = 'font-size:12px;color:#555;margin-top:6px;line-height:1.5;';
-      expEl.appendChild(engLine);
-    }
-    if (c.explanation_hindi) {
-      const hindiLine = document.createElement('div');
-      hindiLine.textContent = '🇮🇳 ' + c.explanation_hindi;
-      hindiLine.style.cssText = 'font-size:12px;color:#1a6fa8;margin-top:5px;line-height:1.5;font-style:italic;';
-      expEl.appendChild(hindiLine);
-    }
+    document.getElementById('m-fc-exp').textContent = c.explanation || '';
     document.getElementById('m-fc-counter').textContent = 'Card ' + (mFcIdx+1) + ' of ' + mFcCards.length;
     document.getElementById('m-fc-bar').style.width = ((mFcIdx+1)/mFcCards.length*100) + '%';
     document.getElementById('m-fc-score').textContent = '✓ ' + mFcKnown;
@@ -961,22 +781,6 @@ Rules:
     document.getElementById('m-fc-inner').style.transform = '';
     document.getElementById('m-fc-sum-text').textContent = 'You knew ' + mFcKnown + ' of ' + mFcCards.length + ' (' + pct + '%). ' + (pct >= 80 ? 'Excellent! 🎉' : 'Keep practising!');
     document.getElementById('m-fc-summary').style.display = 'block';
-  }
-
-  function mDownloadFlashCards() {
-    if (!mFcCards.length) { alert('Generate flashcards first.'); return; }
-    const topic = mFcCards._topic || 'FlashCards';
-    let txt = 'FLASHCARDS: ' + topic + '\n' + '='.repeat(50) + '\n\n';
-    mFcCards.forEach((c, i) => {
-      txt += 'Card ' + (i+1) + '\n';
-      txt += 'Q: ' + c.question + '\n';
-      txt += 'A: ' + c.answer + '\n';
-      if (c.explanation) txt += 'Tip: ' + c.explanation + '\n';
-      if (c.explanation_hindi) txt += 'Hindi: ' + c.explanation_hindi + '\n';
-      txt += '\n';
-    });
-    txt += 'Grammar AI Agent — Nik | ' + new Date().toLocaleDateString('en-IN');
-    dlTxt(txt, 'flashcards-' + topic.replace(/ /g,'-') + '.txt');
   }
 
   // ====== VOCAB MOBILE ======
@@ -1090,178 +894,6 @@ Rules:
       ], 1500);
       out.textContent = reply;
     } catch(e) { out.textContent = 'Error: ' + e.message; }
-  }
-
-  // ====== EMAIL CORRECTION ======
-  function setEmailType(type, btn) {
-    emailType = type;
-    document.querySelectorAll('.email-type-btn').forEach(b => b.classList.remove('sel'));
-    btn.classList.add('sel');
-  }
-
-  function updateEmailWC() {
-    const t = document.getElementById('email-body-in').value.trim();
-    document.getElementById('email-wc-label').textContent = (t ? t.split(/\s+/).length : 0) + ' words';
-  }
-
-  function clearEmail() {
-    document.getElementById('email-subject-in').value = '';
-    document.getElementById('email-body-in').value = '';
-    document.getElementById('email-wc-label').textContent = '0 words';
-    document.getElementById('email-results').style.display = 'none';
-    document.getElementById('email-loading').style.display = 'none';
-    currentEmailData = null;
-  }
-
-  function copyEmailSuggestion(id) {
-    const text = document.getElementById(id).innerText;
-    navigator.clipboard.writeText(text);
-    alert('Copied to clipboard!');
-  }
-
-  function downloadEmail() {
-    if (!currentEmailData) { alert('Correct an email first.'); return; }
-    const d = currentEmailData;
-    let txt = 'EMAIL CORRECTION REPORT\n' + '='.repeat(50) + '\n';
-    txt += 'Type: ' + emailType + ' | Date: ' + new Date().toLocaleDateString('en-IN') + '\n\n';
-    txt += 'ORIGINAL\n' + '-'.repeat(30) + '\n' + d.original + '\n\n';
-    txt += 'GRAMMAR CHECK\n' + '-'.repeat(30) + '\n' + d.summary + '\n\n';
-    txt += 'CORRECTED VERSION\n' + '-'.repeat(30) + '\n' + d.corrected + '\n\n';
-    txt += 'IMPROVED VERSION\n' + '-'.repeat(30) + '\n' + d.improved + '\n\n';
-    txt += 'POLISHED VERSION\n' + '-'.repeat(30) + '\n' + d.polished + '\n\n';
-    txt += 'Grammar AI Agent — Nik';
-    dlTxt(txt, 'email-correction.txt');
-  }
-
-  async function correctEmail() {
-    const subject = document.getElementById('email-subject-in').value.trim();
-    const body = document.getElementById('email-body-in').value.trim();
-    if (!body) { alert('Please enter your email content.'); return; }
-    if (!apiKey) { alert('Set API key first.'); return; }
-
-    document.getElementById('email-loading').style.display = 'block';
-    document.getElementById('email-results').style.display = 'none';
-
-    const typePrompts = {
-      professional: 'professional business email',
-      casual: 'casual friendly email',
-      formal: 'formal official email',
-      apology: 'apology email',
-      followup: 'follow-up email'
-    };
-
-    try {
-      const reply = await callGroq([
-        {role:'system', content:'You are an expert email writing coach. Return ONLY valid JSON, no markdown.'},
-        {role:'user', content:`Analyse and correct this ${typePrompts[emailType] || 'email'}. Subject: "${subject || 'N/A'}". Body: "${body}"
-
-Return ONLY this JSON:
-{
-  "summary": "Grammar check summary: list all grammar errors found, punctuation issues, tone problems. Be specific.",
-  "corrected": "Corrected version — fix ONLY grammar errors, keep original meaning and structure exactly.",
-  "improved": "Improved version — fix grammar AND improve clarity, flow, and tone for ${typePrompts[emailType]}.",
-  "polished": "Polished version — make it perfectly professional, impactful, and compelling for ${typePrompts[emailType]}."
-}`}
-      ], 3000);
-
-      const data = JSON.parse(reply.replace(/```json|```/g,'').trim());
-      currentEmailData = { original: body, ...data };
-
-      document.getElementById('email-summary').textContent = data.summary || '';
-      document.getElementById('email-corrected').textContent = data.corrected || '';
-      document.getElementById('email-improved').textContent = data.improved || '';
-      document.getElementById('email-polished').textContent = data.polished || '';
-      document.getElementById('email-results').style.display = 'block';
-    } catch(e) {
-      alert('Error: ' + e.message);
-    }
-    document.getElementById('email-loading').style.display = 'none';
-  }
-
-  // ====== DAILY NEWS ======
-  const M_NEWS_DATA = [
-    {tag:'grammar',tagClass:'tag-grammar',tagLabel:'Grammar',title:'10 Common English Grammar Mistakes Indians Make',desc:'A detailed guide on the most common errors — from tense confusion to article misuse.',source:'Grammarly Blog',url:'https://www.grammarly.com/blog/grammar-mistakes/'},
-    {tag:'vocab',tagClass:'tag-vocab',tagLabel:'Vocabulary',title:'Word of the Day — Expand Your Vocabulary Daily',desc:'Learn one new English word every day with meaning, pronunciation, and examples.',source:'Merriam-Webster',url:'https://www.merriam-webster.com/word-of-the-day'},
-    {tag:'reading',tagClass:'tag-reading',tagLabel:'Reading',title:'News in Levels — Real News in Simple English',desc:'Current news articles written in simple English. Perfect for building reading skills.',source:'News in Levels',url:'https://www.newsinlevels.com'},
-    {tag:'news',tagClass:'tag-news',tagLabel:'News English',title:'BBC Learning English — Daily Lessons & News',desc:'Free daily English lessons from BBC. Grammar, vocabulary, news and conversations.',source:'BBC Learning English',url:'https://www.bbc.co.uk/learningenglish'},
-    {tag:'practice',tagClass:'tag-practice',tagLabel:'Practice',title:'English Grammar Exercises — Free Practice Tests',desc:'Hundreds of free grammar exercises — tenses, articles, prepositions with answers.',source:'Perfect English Grammar',url:'https://www.perfect-english-grammar.com'},
-    {tag:'grammar',tagClass:'tag-grammar',tagLabel:'Grammar',title:'Understanding All 12 English Tenses — Complete Guide',desc:'A clear breakdown of all 12 tenses with simple rules and real-life examples.',source:'British Council',url:'https://learnenglish.britishcouncil.org/grammar'},
-    {tag:'vocab',tagClass:'tag-vocab',tagLabel:'Vocabulary',title:'Vocabulary.com — Learn Words in Context',desc:'Interactive platform to learn new words through sentence examples and quizzes.',source:'Vocabulary.com',url:'https://www.vocabulary.com'},
-    {tag:'reading',tagClass:'tag-reading',tagLabel:'Reading',title:'The Hindu — Top English Newspaper (Great for Grammar)',desc:"One of India's best English newspapers. Daily reading improves grammar naturally.",source:'The Hindu',url:'https://www.thehindu.com'},
-    {tag:'news',tagClass:'tag-news',tagLabel:'News English',title:'VOA Learning English — News for Learners',desc:"Voice of America's special service with news in slow, clear English.",source:'VOA Learning English',url:'https://learningenglish.voanews.com'},
-    {tag:'practice',tagClass:'tag-practice',tagLabel:'Practice',title:'Cambridge English — Free Grammar Tests',desc:'Official Cambridge practice tests for all levels. Track your progress.',source:'Cambridge English',url:'https://www.cambridgeenglish.org/learning-english/activities-for-learners/'},
-    {tag:'grammar',tagClass:'tag-grammar',tagLabel:'Grammar',title:'Purdue OWL — Most Complete Grammar Reference',desc:"The internet's most trusted grammar guide with clear explanations for every rule.",source:'Purdue OWL',url:'https://owl.purdue.edu/owl/general_writing/grammar/'},
-    {tag:'practice',tagClass:'tag-practice',tagLabel:'Practice',title:'Duolingo — Daily English Practice (Free App)',desc:'Practice English grammar and vocabulary for 10 minutes a day. Fun and effective!',source:'Duolingo',url:'https://www.duolingo.com'},
-  ];
-
-  function renderMNews(filter) {
-    const list = document.getElementById('m-news-list');
-    if (!list) return;
-    const filtered = filter === 'all' ? M_NEWS_DATA : M_NEWS_DATA.filter(n => n.tag === filter);
-    list.innerHTML = filtered.map(n => `
-      <div class="news-card">
-        <span class="news-tag ${n.tagClass}">${n.tagLabel}</span>
-        <div class="news-title">${n.title}</div>
-        <div class="news-desc">${n.desc}</div>
-        <div class="news-footer">
-          <span class="news-source">${n.source}</span>
-          <button class="news-open" onclick="openLink('${n.url}')">Open →</button>
-        </div>
-      </div>`).join('');
-  }
-
-  function filterMNews(filter, btn) {
-    document.querySelectorAll('#page-news .mode-chip').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    renderMNews(filter);
-  }
-
-  // ====== TIMEZONE ======
-  function setNowTZ() {
-    const now = new Date();
-    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0,16);
-    document.getElementById('tz-datetime').value = local;
-  }
-
-  function convertTZ() {
-    const dtVal = document.getElementById('tz-datetime').value;
-    const fromZone = document.getElementById('tz-from').value;
-    const toZone = document.getElementById('tz-to').value;
-    const result = document.getElementById('tz-result');
-    if (!dtVal) { alert('Please select a date and time first.'); return; }
-    try {
-      const dt = new Date(dtVal);
-      const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:true };
-      const from = new Intl.DateTimeFormat('en-IN', {...opts, timeZone: fromZone}).format(dt);
-      const to = new Intl.DateTimeFormat('en-IN', {...opts, timeZone: toZone}).format(dt);
-      result.textContent = 'From (' + fromZone + '):\n' + from + '\n\nTo (' + toZone + '):\n' + to;
-      result.style.display = 'block';
-    } catch(e) { result.textContent = 'Error: ' + e.message; result.style.display = 'block'; }
-  }
-
-  const WORLD_CLOCK_ZONES = [
-    {name:'India',zone:'Asia/Kolkata',flag:'🇮🇳'},
-    {name:'New York',zone:'America/New_York',flag:'🇺🇸'},
-    {name:'London',zone:'Europe/London',flag:'🇬🇧'},
-    {name:'Dubai',zone:'Asia/Dubai',flag:'🇦🇪'},
-    {name:'Singapore',zone:'Asia/Singapore',flag:'🇸🇬'},
-    {name:'Tokyo',zone:'Asia/Tokyo',flag:'🇯🇵'},
-  ];
-
-  function updateWorldClock() {
-    const grid = document.getElementById('world-clock');
-    if (!grid) return;
-    const now = new Date();
-    grid.innerHTML = WORLD_CLOCK_ZONES.map(z => {
-      const time = new Intl.DateTimeFormat('en-IN', {hour:'2-digit',minute:'2-digit',hour12:true,timeZone:z.zone}).format(now);
-      const date = new Intl.DateTimeFormat('en-IN', {day:'numeric',month:'short',timeZone:z.zone}).format(now);
-      return `<div style="background:#f9f9f7;border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
-        <div style="font-size:18px;margin-bottom:2px;">${z.flag}</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${z.name}</div>
-        <div style="font-size:16px;font-weight:600;color:var(--dark);">${time}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px;">${date}</div>
-      </div>`;
-    }).join('');
   }
 
   // ====== WORLD AI ======
