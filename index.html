@@ -237,6 +237,8 @@
       <button id="st-flashcard" onclick="showSub('flashcard')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">🃏 FlashCards</button>
       <button id="st-vocab" onclick="showSub('vocab')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">📖 Vocab</button>
       <button id="st-story" onclick="showSub('story')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">📚 Story</button>
+      <button id="st-timezone" onclick="showSub('timezone')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">🕐 Time Zone</button>
+      <button id="st-email" onclick="showSub('email')" style="padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">✉️ Email</button>
     </div>
 
     <!-- Exercise Sub -->
@@ -278,6 +280,8 @@
             <option value="Vocabulary">Vocabulary</option>
           </select>
           <button class="btn-primary" onclick="mGenFlashCards()">Generate Cards</button>
+          <button id="m-fc-hindi-btn" onclick="mToggleFCHindi()" style="padding:9px 12px;background:transparent;color:#7c3aed;border:1px solid #7c3aed;border-radius:9px;font-size:12px;cursor:pointer;">हिंदी</button>
+          <button onclick="mDownloadFCPPT()" style="padding:9px 12px;background:transparent;color:#555;border:1px solid var(--border);border-radius:9px;font-size:12px;cursor:pointer;">📊 PPT</button>
         </div>
       </div>
       <div id="m-fc-loading" class="loading" style="display:none;">Generating flashcards...</div>
@@ -297,6 +301,7 @@
               <div class="fc-hint">answer</div>
               <div class="fc-a" id="m-fc-a"></div>
               <div class="fc-exp" id="m-fc-exp"></div>
+              <div class="fc-exp" id="m-fc-exp-hi" style="color:#7c3aed;display:none;font-style:italic;"></div>
             </div>
           </div>
         </div>
@@ -362,6 +367,86 @@
         <div class="story-lesson" id="m-story-lesson"></div>
       </div>
     </div>
+
+    <!-- Timezone Sub -->
+    <div class="page-scroll" id="sub-timezone" style="display:none;">
+      <div class="card">
+        <h3>🕐 Time Zone Converter</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Date & Time</div>
+            <input id="m-tz-dt" type="datetime-local" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;"/>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">From</div>
+            <select id="m-tz-from" class="ctrl" style="width:100%;">
+              <option value="Asia/Kolkata">India (IST)</option>
+              <option value="UTC">UTC</option>
+              <option value="America/New_York">New York (EST/EDT)</option>
+              <option value="America/Los_Angeles">Los Angeles (PST/PDT)</option>
+              <option value="Europe/London">London (GMT/BST)</option>
+              <option value="Europe/Paris">Paris (CET/CEST)</option>
+              <option value="Asia/Dubai">Dubai (GST)</option>
+              <option value="Asia/Singapore">Singapore (SGT)</option>
+              <option value="Asia/Tokyo">Tokyo (JST)</option>
+              <option value="Australia/Sydney">Sydney (AEST/AEDT)</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">To</div>
+            <select id="m-tz-to" class="ctrl" style="width:100%;">
+              <option value="UTC">UTC</option>
+              <option value="Asia/Kolkata">India (IST)</option>
+              <option value="America/New_York">New York (EST/EDT)</option>
+              <option value="America/Los_Angeles">Los Angeles (PST/PDT)</option>
+              <option value="Europe/London">London (GMT/BST)</option>
+              <option value="Europe/Paris">Paris (CET/CEST)</option>
+              <option value="Asia/Dubai">Dubai (GST)</option>
+              <option value="Asia/Singapore">Singapore (SGT)</option>
+              <option value="Asia/Tokyo">Tokyo (JST)</option>
+              <option value="Australia/Sydney">Sydney (AEST/AEDT)</option>
+            </select>
+          </div>
+          <div class="btn-row">
+            <button class="btn-primary" onclick="mConvertTZ()">Convert</button>
+            <button class="btn-secondary" onclick="mSetTZNow()">Now</button>
+            <button class="btn-secondary" onclick="mSwapTZ()">⇄ Swap</button>
+          </div>
+          <div id="m-tz-result" class="output-box">Converted time will appear here.</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:10px;">🌍 World Clock</h3>
+        <div id="m-world-clock" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+    </div>
+
+    <!-- Email Sub -->
+    <div class="page-scroll" id="sub-email" style="display:none;">
+      <div class="card">
+        <h3>✉️ Email Correction</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">Paste any email — get grammar corrections + professional suggestions via Groq</p>
+        <select class="ctrl" id="m-email-style" style="width:100%;margin-bottom:8px;">
+          <option value="professional">Professional</option>
+          <option value="formal">Formal / Official</option>
+          <option value="friendly">Friendly Business</option>
+          <option value="simple">Simple & Clear</option>
+          <option value="assertive">Assertive / Confident</option>
+        </select>
+        <textarea class="full" id="m-email-in" placeholder="Paste your email here... any length, multiple paragraphs supported." style="min-height:160px;" oninput="mUpdateEmailWC()"></textarea>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="m-email-wc">0 words</div>
+        <div class="btn-row">
+          <button class="btn-primary" id="m-email-btn" onclick="mCorrectEmail()">Correct & Suggest</button>
+          <button class="btn-secondary" onclick="mClearEmail()">Clear</button>
+          <button class="btn-secondary" onclick="navigator.clipboard.writeText(document.getElementById('m-email-out').innerText)">Copy</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:8px;">Result</h3>
+        <div class="output-box" id="m-email-out" style="min-height:180px;"><span class="output-placeholder">Corrected email + suggestions will appear here...</span></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- TRANSLATOR PAGE -->
@@ -494,8 +579,10 @@ Rules:
     document.getElementById('bn-' + page).classList.add('active');
   }
 
+  let mFcHindi = false;
+
   function showSub(sub) {
-    ['exercise','flashcard','vocab','story'].forEach(s => {
+    ['exercise','flashcard','vocab','story','timezone','email'].forEach(s => {
       document.getElementById('sub-' + s).style.display = s === sub ? 'flex' : 'none';
       const btn = document.getElementById('st-' + s);
       if (btn) {
@@ -504,6 +591,136 @@ Rules:
         btn.style.fontWeight = s === sub ? '500' : '400';
       }
     });
+    if (sub === 'timezone') mRenderWorldClock();
+  }
+
+  // ====== MOBILE FC HINDI + PPT ======
+  function mToggleFCHindi() {
+    mFcHindi = !mFcHindi;
+    const btn = document.getElementById('m-fc-hindi-btn');
+    btn.style.background = mFcHindi ? '#7c3aed' : 'transparent';
+    btn.style.color = mFcHindi ? '#fff' : '#7c3aed';
+    const hiEl = document.getElementById('m-fc-exp-hi');
+    if (hiEl) hiEl.style.display = mFcHindi ? 'block' : 'none';
+  }
+
+  function mDownloadFCPPT() {
+    if (!mFcCards.length) { alert('Generate flashcards first.'); return; }
+    const topic = document.getElementById('m-fc-topic').value;
+    let out = 'FLASHCARD PRESENTATION — ' + topic.toUpperCase() + '\nGrammar AI Agent — Nik\n' + '='.repeat(40) + '\n\n';
+    out += 'Import into PowerPoint / Google Slides — one slide per card.\n' + '='.repeat(40) + '\n\n';
+    mFcCards.forEach((c, i) => {
+      out += `SLIDE ${i+1}\n${'─'.repeat(25)}\n`;
+      out += `[FRONT]\n${c.question}\n\n[BACK]\n${c.answer}\n\n[Explanation]\n${c.explanation||''}\n`;
+      if (c.explanation_hi) out += `[Hindi]\n${c.explanation_hi}\n`;
+      out += '\n';
+    });
+    out += '='.repeat(40) + '\nGrammar AI Agent — Nik | ' + new Date().toLocaleDateString('en-IN');
+    dlTxt(out, 'flashcards-' + topic.replace(/ /g,'-').toLowerCase() + '-ppt.txt');
+  }
+
+  // ====== MOBILE TIMEZONE ======
+  function mSetTZNow() {
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    document.getElementById('m-tz-dt').value =
+      `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }
+
+  function mSwapTZ() {
+    const f = document.getElementById('m-tz-from');
+    const t = document.getElementById('m-tz-to');
+    const tmp = f.value; f.value = t.value; t.value = tmp;
+  }
+
+  function mConvertTZ() {
+    const dtVal = document.getElementById('m-tz-dt').value;
+    const fromTZ = document.getElementById('m-tz-from').value;
+    const toTZ = document.getElementById('m-tz-to').value;
+    const result = document.getElementById('m-tz-result');
+    if (!dtVal) { result.textContent = 'Please pick a date & time.'; return; }
+    try {
+      const dt = new Date(dtVal);
+      const fromStr = dt.toLocaleString('en-IN', { timeZone: fromTZ, dateStyle:'full', timeStyle:'short' });
+      const toStr = dt.toLocaleString('en-IN', { timeZone: toTZ, dateStyle:'full', timeStyle:'short' });
+      const fromLabel = fromTZ.split('/').pop().replace(/_/g,' ');
+      const toLabel = toTZ.split('/').pop().replace(/_/g,' ');
+      result.textContent = `FROM (${fromLabel})\n  ${fromStr}\n\nTO (${toLabel})\n  ${toStr}`;
+    } catch(e) { result.textContent = 'Error: ' + e.message; }
+  }
+
+  function mRenderWorldClock() {
+    const zones = [
+      {label:'India (IST)', tz:'Asia/Kolkata'},
+      {label:'UTC', tz:'UTC'},
+      {label:'New York', tz:'America/New_York'},
+      {label:'London', tz:'Europe/London'},
+      {label:'Dubai', tz:'Asia/Dubai'},
+      {label:'Singapore', tz:'Asia/Singapore'},
+      {label:'Tokyo', tz:'Asia/Tokyo'},
+      {label:'Sydney', tz:'Australia/Sydney'},
+    ];
+    const el = document.getElementById('m-world-clock');
+    if (!el) return;
+    const now = new Date();
+    el.innerHTML = zones.map(z => {
+      const time = now.toLocaleTimeString('en-IN', { timeZone: z.tz, hour:'2-digit', minute:'2-digit', second:'2-digit' });
+      const date = now.toLocaleDateString('en-IN', { timeZone: z.tz, weekday:'short', month:'short', day:'numeric' });
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#f5f5f0;border-radius:8px;">
+        <span style="font-size:12px;color:#666;">${z.label}</span>
+        <div style="text-align:right;">
+          <div style="font-size:14px;font-weight:600;color:var(--dark);font-variant-numeric:tabular-nums;">${time}</div>
+          <div style="font-size:10px;color:#aaa;">${date}</div>
+        </div>
+      </div>`;
+    }).join('');
+    if (!window._mTzInterval) {
+      window._mTzInterval = setInterval(() => {
+        if (document.getElementById('sub-timezone')?.style.display !== 'none') mRenderWorldClock();
+      }, 1000);
+    }
+  }
+
+  // ====== MOBILE EMAIL CORRECTION ======
+  function mUpdateEmailWC() {
+    const t = document.getElementById('m-email-in').value.trim();
+    document.getElementById('m-email-wc').textContent = (t ? t.split(/\s+/).length : 0) + ' words';
+  }
+
+  function mClearEmail() {
+    document.getElementById('m-email-in').value = '';
+    document.getElementById('m-email-out').innerHTML = '<span class="output-placeholder">Corrected email + suggestions will appear here...</span>';
+    mUpdateEmailWC();
+  }
+
+  async function mCorrectEmail() {
+    const text = document.getElementById('m-email-in').value.trim();
+    if (!text || !apiKey) { alert(!apiKey ? 'Set API key first.' : 'Paste your email.'); return; }
+    const style = document.getElementById('m-email-style').value;
+    const btn = document.getElementById('m-email-btn');
+    const out = document.getElementById('m-email-out');
+    btn.disabled = true; btn.textContent = 'Correcting...';
+    out.textContent = 'Analysing your email...';
+    const styleDesc = {
+      professional:'professional and polished business tone',
+      formal:'formal and official tone',
+      friendly:'warm and friendly business tone',
+      simple:'simple, clear, and direct language',
+      assertive:'assertive, confident, and decisive tone'
+    };
+    try {
+      const reply = await callGroq([
+        { role:'system', content:`You are an expert English email editor. Your job:
+1. Show "✅ GRAMMAR CORRECTIONS" — list each error: ❌ Original → ✅ Fixed — Reason.
+2. Show "📧 CORRECTED EMAIL" — the fully corrected version.
+3. Show "💼 SUGGESTION 1 (${styleDesc[style]})" — professional rewrite.
+4. Show "💼 SUGGESTION 2 (Concise)" — shorter, punchier rewrite.
+5. Show "💡 TIPS" — 2-3 specific writing tips.` },
+        { role:'user', content:`Correct and improve this email:\n\n${text}` }
+      ], 3000);
+      out.textContent = reply;
+    } catch(e) { out.textContent = 'Error: ' + e.message; }
+    btn.disabled = false; btn.textContent = 'Correct & Suggest';
   }
 
   function showTr(tab) {
@@ -714,8 +931,8 @@ Rules:
     try {
       const reply = await callGroq([
         {role:'system', content:'You are a flashcard generator. Return ONLY valid JSON, no markdown.'},
-        {role:'user', content:'Create 10 flashcards for: "' + topic + '". Seed: ' + Math.floor(Math.random()*99999) + '. Return ONLY: {"cards":[{"id":1,"question":"Question?","answer":"Answer","explanation":"Example tip"},...10 items]}'}
-      ], 2000);
+        {role:'user', content:'Create 10 flashcards for: "' + topic + '". Seed: ' + Math.floor(Math.random()*99999) + '. Return ONLY: {"cards":[{"id":1,"question":"Question?","answer":"Answer","explanation":"Example tip","explanation_hi":"Hindi mein chhoti vyakhya"},...10 items]}'}
+      ], 2500);
       const data = JSON.parse(reply.replace(/```json|```/g,'').trim());
       mFcCards = data.cards || [];
       mFcIdx = 0; mFcFlipped = false; mFcKnown = 0;
@@ -732,6 +949,11 @@ Rules:
     document.getElementById('m-fc-q').textContent = c.question;
     document.getElementById('m-fc-a').textContent = c.answer;
     document.getElementById('m-fc-exp').textContent = c.explanation || '';
+    const hiEl = document.getElementById('m-fc-exp-hi');
+    if (hiEl) {
+      hiEl.textContent = c.explanation_hi ? '🇮🇳 ' + c.explanation_hi : '';
+      hiEl.style.display = (mFcHindi && c.explanation_hi) ? 'block' : 'none';
+    }
     document.getElementById('m-fc-counter').textContent = 'Card ' + (mFcIdx+1) + ' of ' + mFcCards.length;
     document.getElementById('m-fc-bar').style.width = ((mFcIdx+1)/mFcCards.length*100) + '%';
     document.getElementById('m-fc-score').textContent = '✓ ' + mFcKnown;
