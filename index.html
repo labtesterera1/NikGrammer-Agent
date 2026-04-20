@@ -143,7 +143,7 @@
 
     /* UTILS */
     .loading{text-align:center;padding:24px;color:var(--muted);font-size:13px;}
-    ::-webkit-scrollbar{width:3px;}.`
+    ::-webkit-scrollbar{width:3px;}
     ::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px;}
 
     /* EMAIL PAGE */
@@ -167,6 +167,36 @@
     .news-footer{display:flex;align-items:center;justify-content:space-between;}
     .news-source{font-size:11px;color:#aaa;}
     .news-open{padding:5px 12px;background:var(--dark);color:#fff;border:none;border-radius:7px;font-size:11px;cursor:pointer;}
+    /* NOTES PAGE */
+    .note-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;position:relative;}
+    .note-card.quick{border-left:4px solid #f59e0b;}
+    .note-card.daily{border-left:4px solid #10b981;}
+    .note-card.study{border-left:4px solid #6366f1;}
+    .note-type-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+    .badge-quick{background:#fef3c7;color:#92400e;}
+    .badge-daily{background:#d1fae5;color:#065f46;}
+    .badge-study{background:#ede9fe;color:#4c1d95;}
+    .note-date{font-size:10px;color:var(--muted);margin-bottom:6px;}
+    .note-title{font-size:13px;font-weight:600;color:var(--dark);margin-bottom:4px;}
+    .note-preview{font-size:13px;color:#444;line-height:1.6;white-space:pre-wrap;}
+    .note-preview.collapsed{max-height:60px;overflow:hidden;position:relative;}
+    .note-preview.collapsed::after{content:'';position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(transparent,#fff);}
+    .note-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+    .note-btn{padding:5px 10px;border:1px solid var(--border);border-radius:7px;font-size:11px;background:#fff;color:#555;cursor:pointer;font-family:inherit;}
+    .note-btn.danger{color:#dc2626;border-color:#fca5a5;}
+    .note-btn.ai{color:#7c3aed;border-color:#c4b5fd;}
+    .note-search{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#fff;}
+    .note-search:focus{border-color:var(--dark);}
+    .notes-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;}
+    .note-tag{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;background:#f0f0ee;color:#666;margin:2px;}
+    .note-editor-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;flex-direction:column;}
+    .note-editor-inner{background:#fff;margin-top:auto;border-radius:20px 20px 0 0;padding:20px;max-height:92dvh;display:flex;flex-direction:column;gap:12px;overflow-y:auto;}
+    .note-editor-title{font-size:16px;font-weight:600;color:var(--dark);}
+    .note-tag-sel{display:flex;gap:6px;flex-wrap:wrap;}
+    .note-tag-opt{padding:5px 12px;border:1px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;color:#555;font-family:inherit;}
+    .note-tag-opt.sel{background:var(--dark);color:#fff;border-color:var(--dark);}
+    .ai-result-box{padding:12px;border:1px solid #c4b5fd;border-radius:10px;background:#faf5ff;font-size:13px;line-height:1.7;white-space:pre-wrap;color:#1a1a2e;display:none;}
+
   </style>
 </head>
 <body>
@@ -194,6 +224,7 @@
         <button id="btn-en" class="active" onclick="setLang('en')">EN</button>
         <button id="btn-hi" onclick="setLang('hi')">HI</button>
       </div>
+      <button onclick="changeKey()" style="padding:5px 10px;border:none;border-radius:8px;background:rgba(255,255,255,0.15);color:#fff;font-size:11px;cursor:pointer;font-family:inherit;" title="Change API Key">🔑 Key</button>
     </div>
   </div>
 </div>
@@ -503,25 +534,6 @@
     </div>
   </div>
 
-  <!-- DAILY NEWS PAGE -->
-  <div class="page" id="page-news">
-    <div style="display:flex;gap:6px;padding:10px 12px;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;">
-      <button class="mode-chip active" id="nf-all" onclick="filterMNews('all',this)">All</button>
-      <button class="mode-chip" onclick="filterMNews('grammar',this)">Grammar</button>
-      <button class="mode-chip" onclick="filterMNews('vocab',this)">Vocab</button>
-      <button class="mode-chip" onclick="filterMNews('reading',this)">Reading</button>
-      <button class="mode-chip" onclick="filterMNews('news',this)">News EN</button>
-      <button class="mode-chip" onclick="filterMNews('practice',this)">Practice</button>
-    </div>
-    <!-- Quick links -->
-    <div style="display:flex;gap:8px;padding:10px 12px;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;">
-      <button class="quick-chip" onclick="openLink('https://timesofindia.indiatimes.com/india')">Times of India</button>
-      <button class="quick-chip" onclick="openLink('https://www.hindustantimes.com/latest-news')">Hindustan Times</button>
-      <button class="quick-chip" onclick="openLink('https://www.bbc.co.uk/learningenglish')">BBC Learning</button>
-    </div>
-    <div class="page-scroll" id="m-news-list"></div>
-  </div>
-
   <!-- TRANSLATOR PAGE -->
   <div class="page" id="page-translator">
     <div style="display:flex;border-bottom:1px solid var(--border);background:#fff;flex-shrink:0;">
@@ -560,30 +572,224 @@
     </div>
   </div>
 
-  <!-- WORLD AI PAGE -->
-  <div class="page" id="page-worldai">
-    <div style="display:flex;gap:6px;padding:10px 12px;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;">
-      <button class="mode-chip active" onclick="filterMAI('all',this)">All</button>
-      <button class="mode-chip" onclick="filterMAI('chat',this)">Chat</button>
-      <button class="mode-chip" onclick="filterMAI('image',this)">Image</button>
-      <button class="mode-chip" onclick="filterMAI('code',this)">Code</button>
-      <button class="mode-chip" onclick="filterMAI('search',this)">Search</button>
-      <button class="mode-chip" onclick="filterMAI('voice',this)">Voice</button>
+  <!-- MICROSOFT COPILOT PAGE -->
+  <div class="page" id="page-copilot">
+    <div style="background:#fff;border-bottom:1px solid var(--border);padding:12px 16px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:28px;">🔷</span>
+        <div>
+          <div style="font-size:15px;font-weight:600;color:#1a1a2e;">Microsoft Copilot</div>
+          <div style="font-size:11px;color:var(--muted);">AI powered by GPT-4 — Free to use</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="openCopilot('https://copilot.microsoft.com')" style="flex:1;padding:10px;background:#1a1a2e;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit;">🌐 Open Copilot Web</button>
+        <button onclick="openCopilot('https://www.bing.com/chat')" style="flex:1;padding:10px;background:#0078d4;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit;">🔵 Bing AI Chat</button>
+      </div>
     </div>
-    <div class="page-scroll" id="m-ai-list"></div>
+    <div class="page-scroll">
+
+      <!-- Ask Copilot directly -->
+      <div class="card">
+        <h3>Ask Copilot via Grammar Agent</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">Use Groq-powered AI in Copilot style — English + Hindi, grammar focused.</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+          <button class="quick-chip" onclick="useCopilotQ('Fix my English grammar and explain the mistakes')">Fix Grammar</button>
+          <button class="quick-chip" onclick="useCopilotQ('Write a professional email for me')">Write Email</button>
+          <button class="quick-chip" onclick="useCopilotQ('Translate this to Hindi')">Translate</button>
+          <button class="quick-chip" onclick="useCopilotQ('Explain this in simple English')">Simplify</button>
+          <button class="quick-chip" onclick="useCopilotQ('Give me 5 grammar tips for Indians')">Grammar Tips</button>
+          <button class="quick-chip" onclick="useCopilotQ('Check my sentence for errors')">Check Sentence</button>
+        </div>
+        <textarea id="copilot-inp" class="full" style="min-height:100px;" placeholder="Ask anything — grammar questions, email writing, translation, explanations..."></textarea>
+        <div class="btn-row">
+          <button class="btn-primary" id="copilot-send-btn" onclick="sendCopilot()">✨ Ask Copilot</button>
+          <button class="btn-secondary" onclick="document.getElementById('copilot-inp').value='';document.getElementById('copilot-out').innerHTML='<span class=output-placeholder>Response will appear here...</span>';document.getElementById('copilot-out').style.display='block';">Clear</button>
+          <button class="btn-secondary" onclick="navigator.clipboard.writeText(document.getElementById('copilot-out').innerText)">Copy</button>
+        </div>
+      </div>
+
+      <div id="copilot-loading" class="loading" style="display:none;">Copilot is thinking...</div>
+      <div class="card" id="copilot-result-card" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <h3 style="margin:0;">🔷 Copilot Response</h3>
+          <button class="btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="navigator.clipboard.writeText(document.getElementById('copilot-out').innerText)">Copy</button>
+        </div>
+        <div id="copilot-out" class="output-box" style="min-height:100px;"><span class="output-placeholder">Response will appear here...</span></div>
+      </div>
+
+      <!-- Copilot Features Info -->
+      <div class="card">
+        <h3>What Microsoft Copilot Can Do</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+          <div onclick="openCopilot('https://copilot.microsoft.com')" style="display:flex;align-items:center;gap:12px;padding:12px;background:#f5f5f0;border-radius:10px;cursor:pointer;">
+            <span style="font-size:22px;">✍️</span>
+            <div><div style="font-size:13px;font-weight:500;">Writing & Grammar</div><div style="font-size:11px;color:var(--muted);">Draft emails, correct grammar, improve writing</div></div>
+          </div>
+          <div onclick="openCopilot('https://copilot.microsoft.com')" style="display:flex;align-items:center;gap:12px;padding:12px;background:#f5f5f0;border-radius:10px;cursor:pointer;">
+            <span style="font-size:22px;">🔍</span>
+            <div><div style="font-size:13px;font-weight:500;">Search & Research</div><div style="font-size:11px;color:var(--muted);">Real-time web search with AI answers and citations</div></div>
+          </div>
+          <div onclick="openCopilot('https://copilot.microsoft.com')" style="display:flex;align-items:center;gap:12px;padding:12px;background:#f5f5f0;border-radius:10px;cursor:pointer;">
+            <span style="font-size:22px;">🌐</span>
+            <div><div style="font-size:13px;font-weight:500;">Translation</div><div style="font-size:11px;color:var(--muted);">Translate between Hindi, English and 100+ languages</div></div>
+          </div>
+          <div onclick="openCopilot('https://copilot.microsoft.com')" style="display:flex;align-items:center;gap:12px;padding:12px;background:#f5f5f0;border-radius:10px;cursor:pointer;">
+            <span style="font-size:22px;">🖼️</span>
+            <div><div style="font-size:13px;font-weight:500;">Image Generation</div><div style="font-size:11px;color:var(--muted);">Create images from text with DALL-E 3 (free)</div></div>
+          </div>
+          <div onclick="openCopilot('https://copilot.microsoft.com')" style="display:flex;align-items:center;gap:12px;padding:12px;background:#f5f5f0;border-radius:10px;cursor:pointer;">
+            <span style="font-size:22px;">📊</span>
+            <div><div style="font-size:13px;font-weight:500;">Office Integration</div><div style="font-size:11px;color:var(--muted);">Works inside Word, Excel, PowerPoint, Outlook</div></div>
+          </div>
+          <div onclick="openCopilot('https://copilot.microsoft.com')" style="display:flex;align-items:center;gap:12px;padding:12px;background:#f5f5f0;border-radius:10px;cursor:pointer;">
+            <span style="font-size:22px;">💻</span>
+            <div><div style="font-size:13px;font-weight:500;">Coding Help</div><div style="font-size:11px;color:var(--muted);">Write, debug and explain code in any language</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Open Links -->
+      <div class="card">
+        <h3>Open Copilot Everywhere</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+          <button onclick="openCopilot('https://copilot.microsoft.com')" style="width:100%;padding:12px;background:#fff;border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer;text-align:left;font-family:inherit;display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">🌐</span><div><div style="font-weight:500;">Copilot Web</div><div style="font-size:11px;color:var(--muted);">copilot.microsoft.com</div></div></button>
+          <button onclick="openCopilot('https://www.bing.com/chat')" style="width:100%;padding:12px;background:#fff;border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer;text-align:left;font-family:inherit;display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">🔵</span><div><div style="font-weight:500;">Bing AI Chat</div><div style="font-size:11px;color:var(--muted);">bing.com/chat</div></div></button>
+          <button onclick="openCopilot('https://teams.microsoft.com')" style="width:100%;padding:12px;background:#fff;border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer;text-align:left;font-family:inherit;display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">💼</span><div><div style="font-weight:500;">Copilot in Teams</div><div style="font-size:11px;color:var(--muted);">teams.microsoft.com</div></div></button>
+          <button onclick="openCopilot('https://office.com')" style="width:100%;padding:12px;background:#fff;border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer;text-align:left;font-family:inherit;display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">📄</span><div><div style="font-weight:500;">Copilot in Office</div><div style="font-size:11px;color:var(--muted);">office.com — Word, Excel, PowerPoint</div></div></button>
+          <button onclick="openCopilot('https://outlook.com')" style="width:100%;padding:12px;background:#fff;border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer;text-align:left;font-family:inherit;display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">📧</span><div><div style="font-weight:500;">Copilot in Outlook</div><div style="font-size:11px;color:var(--muted);">outlook.com — Email drafting & summarizing</div></div></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- NOTES PAGE -->
+  <div class="page" id="page-notes">
+
+    <!-- Sub-tabs -->
+    <div style="display:flex;border-bottom:1px solid var(--border);background:#fff;flex-shrink:0;overflow-x:auto;">
+      <button id="nt-all"   onclick="showNotesSub('all')"   style="padding:10px 14px;border:none;border-bottom:2px solid var(--dark);background:transparent;font-size:12px;font-weight:500;color:var(--dark);cursor:pointer;white-space:nowrap;">📋 All</button>
+      <button id="nt-quick" onclick="showNotesSub('quick')" style="padding:10px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">⚡ Quick</button>
+      <button id="nt-daily" onclick="showNotesSub('daily')" style="padding:10px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">📅 Daily</button>
+      <button id="nt-study" onclick="showNotesSub('study')" style="padding:10px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">📚 Study</button>
+    </div>
+
+    <!-- Toolbar: search + new note + download -->
+    <div style="display:flex;gap:8px;padding:10px 14px;background:#fff;border-bottom:1px solid var(--border);flex-shrink:0;">
+      <input id="notes-search" class="note-search" placeholder="🔍 Search notes..." oninput="searchNotes()" style="flex:1;padding:8px 12px;font-size:13px;" />
+      <button onclick="openNoteEditor(null)" style="padding:8px 14px;background:var(--dark);color:#fff;border:none;border-radius:9px;font-size:20px;cursor:pointer;flex-shrink:0;" title="New Note">+</button>
+    </div>
+
+    <!-- Stats bar -->
+    <div id="notes-stats" style="display:flex;gap:12px;padding:8px 14px;background:#fafaf7;border-bottom:1px solid var(--border);flex-shrink:0;font-size:11px;color:var(--muted);overflow-x:auto;white-space:nowrap;">
+      <span id="stat-total">0 notes</span>
+      <span>·</span>
+      <span id="stat-quick">⚡ 0 quick</span>
+      <span>·</span>
+      <span id="stat-daily">📅 0 daily</span>
+      <span>·</span>
+      <span id="stat-study">📚 0 study</span>
+      <span style="margin-left:auto;"><button onclick="downloadAllNotes()" style="border:none;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;">⬇ Download All</button></span>
+      <span><button onclick="downloadNotesJSON()" style="border:none;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;">💾 Backup JSON</button></span>
+    </div>
+
+    <!-- Notes list -->
+    <div class="page-scroll" id="notes-list-area" style="gap:0;padding:12px;">
+      <div class="notes-empty" id="notes-empty-msg">
+        <div style="font-size:40px;margin-bottom:12px;">📝</div>
+        <div style="font-weight:500;margin-bottom:6px;">No notes yet</div>
+        <div style="font-size:12px;">Tap <strong>+</strong> to create your first note</div>
+      </div>
+      <div id="notes-list"></div>
+    </div>
+
+  </div>
+
+  <!-- NOTE EDITOR OVERLAY -->
+  <div class="note-editor-overlay" id="note-editor" style="display:none;">
+    <div style="flex:1;" onclick="closeNoteEditor()"></div>
+    <div class="note-editor-inner">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="note-editor-title" id="editor-title-label">New Note</div>
+        <button onclick="closeNoteEditor()" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:#888;">×</button>
+      </div>
+
+      <!-- Note type selector -->
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">NOTE TYPE</div>
+        <div class="note-tag-sel">
+          <button class="note-tag-opt sel" id="ntype-quick" onclick="selectNoteType('quick',this)">⚡ Quick Note</button>
+          <button class="note-tag-opt" id="ntype-daily" onclick="selectNoteType('daily',this)">📅 Daily Journal</button>
+          <button class="note-tag-opt" id="ntype-study" onclick="selectNoteType('study',this)">📚 Study Note</button>
+        </div>
+      </div>
+
+      <!-- Title (optional) -->
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">TITLE (optional)</div>
+        <input id="note-title-inp" type="text" placeholder="e.g. Present Perfect rules, Daily reflection..." style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;outline:none;" />
+      </div>
+
+      <!-- Tags -->
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">TAGS (tap to add)</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="tag-options">
+          <button class="note-tag-opt" onclick="toggleTag(this,'#grammar')">#grammar</button>
+          <button class="note-tag-opt" onclick="toggleTag(this,'#vocab')">#vocab</button>
+          <button class="note-tag-opt" onclick="toggleTag(this,'#tense')">#tense</button>
+          <button class="note-tag-opt" onclick="toggleTag(this,'#email')">#email</button>
+          <button class="note-tag-opt" onclick="toggleTag(this,'#hindi')">#hindi</button>
+          <button class="note-tag-opt" onclick="toggleTag(this,'#daily')">#daily</button>
+          <button class="note-tag-opt" onclick="toggleTag(this,'#idea')">#idea</button>
+          <button class="note-tag-opt" onclick="toggleTag(this,'#tip')">#tip</button>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">CONTENT</div>
+        <textarea id="note-content-inp" class="full" placeholder="Write your note here... No limit on length!" style="min-height:140px;resize:none;"></textarea>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;text-align:right;" id="note-char-count">0 words</div>
+      </div>
+
+      <!-- AI tools -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="aiNoteAction('improve')" style="padding:7px 12px;border:1px solid #c4b5fd;border-radius:8px;background:#faf5ff;color:#7c3aed;font-size:12px;cursor:pointer;font-family:inherit;">✨ Improve English</button>
+        <button onclick="aiNoteAction('summarise')" style="padding:7px 12px;border:1px solid #c4b5fd;border-radius:8px;background:#faf5ff;color:#7c3aed;font-size:12px;cursor:pointer;font-family:inherit;">📝 Summarise</button>
+        <button onclick="aiNoteAction('translate')" style="padding:7px 12px;border:1px solid #c4b5fd;border-radius:8px;background:#faf5ff;color:#7c3aed;font-size:12px;cursor:pointer;font-family:inherit;">🇮🇳 Hindi</button>
+        <button onclick="aiNoteAction('explain')" style="padding:7px 12px;border:1px solid #c4b5fd;border-radius:8px;background:#faf5ff;color:#7c3aed;font-size:12px;cursor:pointer;font-family:inherit;">💡 Explain</button>
+      </div>
+      <div id="note-ai-loading" class="loading" style="display:none;padding:10px;">AI is thinking...</div>
+      <div class="ai-result-box" id="note-ai-result">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:11px;font-weight:600;color:#7c3aed;" id="note-ai-label">AI Result</span>
+          <div style="display:flex;gap:6px;">
+            <button onclick="applyAIToNote()" style="padding:4px 10px;border:1px solid #c4b5fd;border-radius:6px;font-size:11px;background:#fff;color:#7c3aed;cursor:pointer;font-family:inherit;">Use This</button>
+            <button onclick="document.getElementById('note-ai-result').style.display='none';" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:11px;background:#fff;color:#888;cursor:pointer;">✕</button>
+          </div>
+        </div>
+        <div id="note-ai-text" style="font-size:13px;line-height:1.7;white-space:pre-wrap;color:#1a1a2e;"></div>
+      </div>
+
+      <!-- Save + Delete -->
+      <div style="display:flex;gap:8px;">
+        <button onclick="saveNote()" style="flex:1;padding:12px;background:var(--dark);color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-family:inherit;font-weight:500;">💾 Save Note</button>
+        <button id="delete-note-btn" onclick="deleteCurrentNote()" style="padding:12px 16px;background:#fde8e8;color:#dc2626;border:1px solid #fca5a5;border-radius:10px;font-size:14px;cursor:pointer;display:none;font-family:inherit;">🗑</button>
+      </div>
+
+    </div>
   </div>
 
 </div>
-
-<!-- BOTTOM NAV — 6 tabs, smaller font -->
 <div id="bottomnav" style="overflow-x:auto;">
   <button class="bnav-btn active" id="bn-chat" onclick="showPage('chat')"><span class="bi">💬</span>Chat</button>
   <button class="bnav-btn" id="bn-para" onclick="showPage('para')"><span class="bi">✏️</span>Paragraph</button>
   <button class="bnav-btn" id="bn-tense" onclick="showPage('tense')"><span class="bi">📝</span>Exercise</button>
   <button class="bnav-btn" id="bn-email" onclick="showPage('email')"><span class="bi">✉️</span>Email</button>
-  <button class="bnav-btn" id="bn-news" onclick="showPage('news')"><span class="bi">📰</span>News</button>
   <button class="bnav-btn" id="bn-translator" onclick="showPage('translator')"><span class="bi">🔄</span>Translate</button>
-  <button class="bnav-btn" id="bn-worldai" onclick="showPage('worldai')"><span class="bi">🌐</span>AI</button>
+  <button class="bnav-btn" id="bn-notes" onclick="showPage('notes')"><span class="bi">📋</span>Notes</button>
+  <button class="bnav-btn" id="bn-copilot" onclick="showPage('copilot')"><span class="bi">🔷</span>Copilot</button>
 </div>
 
 <script>
@@ -611,33 +817,12 @@ Rules:
     'Prepositions of Place','Prepositions of Time','Prepositions of Movement'
   ];
 
-  const M_AI_TOOLS = [
-    {name:'Claude',company:'Anthropic',cat:'chat',desc:'Advanced AI by Anthropic.',url:'https://claude.ai',icon:'🟠'},
-    {name:'ChatGPT',company:'OpenAI',cat:'chat',desc:'Most popular AI chat assistant.',url:'https://chat.openai.com',icon:'🟢'},
-    {name:'Gemini',company:'Google',cat:'chat',desc:'Google multimodal AI assistant.',url:'https://gemini.google.com',icon:'🔵'},
-    {name:'Copilot',company:'Microsoft',cat:'chat',desc:'Microsoft AI built into Windows.',url:'https://copilot.microsoft.com',icon:'🔷'},
-    {name:'Grok',company:'xAI',cat:'chat',desc:'AI on X with real-time web access.',url:'https://grok.x.ai',icon:'⚡'},
-    {name:'Meta AI',company:'Meta',cat:'chat',desc:'AI on WhatsApp, Instagram, Facebook.',url:'https://www.meta.ai',icon:'🦙'},
-    {name:'Groq',company:'Groq',cat:'chat',desc:'Ultra-fast free AI. Powers this app!',url:'https://groq.com',icon:'🚀'},
-    {name:'Perplexity',company:'Perplexity',cat:'search',desc:'AI search with real-time citations.',url:'https://www.perplexity.ai',icon:'🔍'},
-    {name:'DALL-E',company:'OpenAI',cat:'image',desc:'Generate images from text.',url:'https://openai.com/dall-e-3',icon:'🎨'},
-    {name:'Midjourney',company:'Midjourney',cat:'image',desc:'Create stunning AI art.',url:'https://www.midjourney.com',icon:'🖼️'},
-    {name:'Adobe Firefly',company:'Adobe',cat:'image',desc:'AI image in Adobe Creative Cloud.',url:'https://firefly.adobe.com',icon:'🔥'},
-    {name:'GitHub Copilot',company:'GitHub',cat:'code',desc:'AI code autocomplete in your editor.',url:'https://github.com/features/copilot',icon:'💻'},
-    {name:'Cursor',company:'Cursor',cat:'code',desc:'AI-first code editor.',url:'https://cursor.com',icon:'🖱️'},
-    {name:'Grammarly',company:'Grammarly',cat:'productivity',desc:'AI writing assistant for grammar.',url:'https://www.grammarly.com',icon:'✍️'},
-    {name:'ElevenLabs',company:'ElevenLabs',cat:'voice',desc:'Realistic AI voice generation.',url:'https://elevenlabs.io',icon:'🔊'},
-    {name:'Suno',company:'Suno',cat:'voice',desc:'Generate full songs with AI.',url:'https://suno.ai',icon:'🎵'},
-  ];
-
   // ====== INIT ======
   if (apiKey) {
     document.getElementById('setup').style.display = 'none';
-    addMsg('bot', 'Namaste Nik! 👋\n\nI am your Grammar AI Agent. Ask me anything in English or Hindi!\n\nUse the bottom tabs — Chat, Paragraph, Exercise, Email, News, Translate, World AI.');
+    addMsg('bot', 'Namaste Nik! 👋\n\nI am your Grammar AI Agent. Ask me anything in English or Hindi!\n\nUse the bottom tabs — Chat, Paragraph, Exercise, Email, Translate, Notes, Copilot.');
   }
   initMTenseButtons();
-  renderMAITools('all');
-  renderMNews('all');
   setNowTZ();
 
   // ====== SETUP ======
@@ -650,12 +835,24 @@ Rules:
     addMsg('bot', 'Namaste Nik! 👋\n\nI am your Grammar AI Agent. Ask me anything in English or Hindi!\n\nUse the tabs below to navigate.');
   }
 
+  function changeKey() {
+    const current = apiKey ? '(current key saved)' : '(no key set)';
+    const newKey = prompt('Enter your new Groq API key ' + current + ':\n\nGet a free key at console.groq.com → API Keys → Create', '');
+    if (newKey === null) return; // cancelled
+    if (!newKey.trim()) { alert('No key entered. Keeping existing key.'); return; }
+    if (!newKey.trim().startsWith('gsk_')) { alert('Invalid key — must start with gsk_\n\nPlease get your key from console.groq.com'); return; }
+    apiKey = newKey.trim();
+    localStorage.setItem('grammar_key', apiKey);
+    alert('✅ API key updated successfully!');
+  }
+
   // ====== NAVIGATION ======
   function showPage(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('page-' + page).classList.add('active');
     document.getElementById('bn-' + page).classList.add('active');
+    if (page === 'notes') renderNotes(document.getElementById('notes-search')?.value || '');
   }
 
   function showSub(sub) {
@@ -1178,44 +1375,6 @@ Return ONLY this JSON:
     document.getElementById('email-loading').style.display = 'none';
   }
 
-  // ====== DAILY NEWS ======
-  const M_NEWS_DATA = [
-    {tag:'grammar',tagClass:'tag-grammar',tagLabel:'Grammar',title:'10 Common English Grammar Mistakes Indians Make',desc:'A detailed guide on the most common errors — from tense confusion to article misuse.',source:'Grammarly Blog',url:'https://www.grammarly.com/blog/grammar-mistakes/'},
-    {tag:'vocab',tagClass:'tag-vocab',tagLabel:'Vocabulary',title:'Word of the Day — Expand Your Vocabulary Daily',desc:'Learn one new English word every day with meaning, pronunciation, and examples.',source:'Merriam-Webster',url:'https://www.merriam-webster.com/word-of-the-day'},
-    {tag:'reading',tagClass:'tag-reading',tagLabel:'Reading',title:'News in Levels — Real News in Simple English',desc:'Current news articles written in simple English. Perfect for building reading skills.',source:'News in Levels',url:'https://www.newsinlevels.com'},
-    {tag:'news',tagClass:'tag-news',tagLabel:'News English',title:'BBC Learning English — Daily Lessons & News',desc:'Free daily English lessons from BBC. Grammar, vocabulary, news and conversations.',source:'BBC Learning English',url:'https://www.bbc.co.uk/learningenglish'},
-    {tag:'practice',tagClass:'tag-practice',tagLabel:'Practice',title:'English Grammar Exercises — Free Practice Tests',desc:'Hundreds of free grammar exercises — tenses, articles, prepositions with answers.',source:'Perfect English Grammar',url:'https://www.perfect-english-grammar.com'},
-    {tag:'grammar',tagClass:'tag-grammar',tagLabel:'Grammar',title:'Understanding All 12 English Tenses — Complete Guide',desc:'A clear breakdown of all 12 tenses with simple rules and real-life examples.',source:'British Council',url:'https://learnenglish.britishcouncil.org/grammar'},
-    {tag:'vocab',tagClass:'tag-vocab',tagLabel:'Vocabulary',title:'Vocabulary.com — Learn Words in Context',desc:'Interactive platform to learn new words through sentence examples and quizzes.',source:'Vocabulary.com',url:'https://www.vocabulary.com'},
-    {tag:'reading',tagClass:'tag-reading',tagLabel:'Reading',title:'The Hindu — Top English Newspaper (Great for Grammar)',desc:"One of India's best English newspapers. Daily reading improves grammar naturally.",source:'The Hindu',url:'https://www.thehindu.com'},
-    {tag:'news',tagClass:'tag-news',tagLabel:'News English',title:'VOA Learning English — News for Learners',desc:"Voice of America's special service with news in slow, clear English.",source:'VOA Learning English',url:'https://learningenglish.voanews.com'},
-    {tag:'practice',tagClass:'tag-practice',tagLabel:'Practice',title:'Cambridge English — Free Grammar Tests',desc:'Official Cambridge practice tests for all levels. Track your progress.',source:'Cambridge English',url:'https://www.cambridgeenglish.org/learning-english/activities-for-learners/'},
-    {tag:'grammar',tagClass:'tag-grammar',tagLabel:'Grammar',title:'Purdue OWL — Most Complete Grammar Reference',desc:"The internet's most trusted grammar guide with clear explanations for every rule.",source:'Purdue OWL',url:'https://owl.purdue.edu/owl/general_writing/grammar/'},
-    {tag:'practice',tagClass:'tag-practice',tagLabel:'Practice',title:'Duolingo — Daily English Practice (Free App)',desc:'Practice English grammar and vocabulary for 10 minutes a day. Fun and effective!',source:'Duolingo',url:'https://www.duolingo.com'},
-  ];
-
-  function renderMNews(filter) {
-    const list = document.getElementById('m-news-list');
-    if (!list) return;
-    const filtered = filter === 'all' ? M_NEWS_DATA : M_NEWS_DATA.filter(n => n.tag === filter);
-    list.innerHTML = filtered.map(n => `
-      <div class="news-card">
-        <span class="news-tag ${n.tagClass}">${n.tagLabel}</span>
-        <div class="news-title">${n.title}</div>
-        <div class="news-desc">${n.desc}</div>
-        <div class="news-footer">
-          <span class="news-source">${n.source}</span>
-          <button class="news-open" onclick="openLink('${n.url}')">Open →</button>
-        </div>
-      </div>`).join('');
-  }
-
-  function filterMNews(filter, btn) {
-    document.querySelectorAll('#page-news .mode-chip').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    renderMNews(filter);
-  }
-
   // ====== TIMEZONE ======
   function setNowTZ() {
     const now = new Date();
@@ -1264,28 +1423,384 @@ Return ONLY this JSON:
     }).join('');
   }
 
-  // ====== WORLD AI ======
-  function renderMAITools(filter) {
-    const list = document.getElementById('m-ai-list');
-    if (!list) return;
-    const filtered = filter === 'all' ? M_AI_TOOLS : M_AI_TOOLS.filter(a => a.cat === filter);
-    list.innerHTML = filtered.map(a => `
-      <div class="ai-card">
-        <span class="ai-icon">${a.icon}</span>
-        <div class="ai-info">
-          <div class="ai-name">${a.name} <span class="cat-badge">${a.cat}</span></div>
-          <div class="ai-company">${a.company}</div>
-          <div class="ai-desc">${a.desc}</div>
-        </div>
-        <button class="ai-open" onclick="openLink('${a.url}')">Open →</button>
-      </div>`).join('');
+  // ====== MICROSOFT COPILOT ======
+  function openCopilot(url) { window.open(url, '_blank'); }
+
+  function useCopilotQ(text) {
+    document.getElementById('copilot-inp').value = text;
+    sendCopilot();
   }
 
-  function filterMAI(filter, btn) {
-    document.querySelectorAll('#page-worldai .mode-chip').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    renderMAITools(filter);
+  async function sendCopilot() {
+    const text = document.getElementById('copilot-inp').value.trim();
+    if (!text) { alert('Please enter a question or message.'); return; }
+    if (!apiKey) { alert('Set your Groq API key first — tap 🔑 Key in the top bar.'); return; }
+    const btn = document.getElementById('copilot-send-btn');
+    btn.disabled = true; btn.textContent = 'Thinking...';
+    document.getElementById('copilot-loading').style.display = 'block';
+    document.getElementById('copilot-result-card').style.display = 'none';
+    try {
+      const reply = await callGroq([
+        { role: 'system', content: `You are Microsoft Copilot — a helpful, friendly, and intelligent AI assistant for Nik. You help with:
+- English grammar correction and explanation
+- Email writing and improvement
+- Hindi-English translation
+- General questions and explanations
+- Writing, summarising, and brainstorming
+
+Rules:
+- Be warm, clear, and practical.
+- For grammar corrections: show ❌ Wrong → ✅ Correct with a brief reason.
+- For Hindi requests: provide both Hindi and English.
+- Keep responses well-organised and easy to read.
+- The user's name is Nik.` },
+        { role: 'user', content: text }
+      ], 2000);
+      document.getElementById('copilot-out').textContent = reply;
+      document.getElementById('copilot-result-card').style.display = 'block';
+    } catch(e) {
+      document.getElementById('copilot-out').textContent = 'Error: ' + e.message;
+      document.getElementById('copilot-result-card').style.display = 'block';
+    }
+    document.getElementById('copilot-loading').style.display = 'none';
+    btn.disabled = false; btn.textContent = '✨ Ask Copilot';
   }
+
+  // ====== NOTES SYSTEM ======
+  let notesData = JSON.parse(localStorage.getItem('grammar_notes') || '[]');
+  let currentNoteId = null;
+  let currentNotesSub = 'all';
+  let currentNoteTags = [];
+  let currentNoteType = 'quick';
+  let lastAIResult = '';
+
+  function saveNotesToStorage() {
+    localStorage.setItem('grammar_notes', JSON.stringify(notesData));
+  }
+
+  function getNoteId() {
+    return 'note_' + Date.now() + '_' + Math.floor(Math.random() * 9999);
+  }
+
+  function formatNoteDate(ts) {
+    const d = new Date(ts);
+    const today = new Date();
+    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    const isToday = d.toDateString() === today.toDateString();
+    const isYesterday = d.toDateString() === yesterday.toDateString();
+    const time = d.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', hour12:true});
+    if (isToday) return 'Today, ' + time;
+    if (isYesterday) return 'Yesterday, ' + time;
+    return d.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) + ', ' + time;
+  }
+
+  function showNotesSub(sub) {
+    currentNotesSub = sub;
+    ['all','quick','daily','study'].forEach(s => {
+      const btn = document.getElementById('nt-' + s);
+      if (!btn) return;
+      btn.style.borderBottom = s === sub ? '2px solid var(--dark)' : '2px solid transparent';
+      btn.style.color = s === sub ? 'var(--dark)' : 'var(--muted)';
+      btn.style.fontWeight = s === sub ? '500' : '400';
+    });
+    renderNotes();
+  }
+
+  function renderNotes(filterText) {
+    const list = document.getElementById('notes-list');
+    const empty = document.getElementById('notes-empty-msg');
+    let notes = [...notesData].sort((a, b) => b.updatedAt - a.updatedAt);
+
+    // Filter by sub-tab type
+    if (currentNotesSub !== 'all') notes = notes.filter(n => n.type === currentNotesSub);
+
+    // Filter by search text
+    if (filterText && filterText.trim()) {
+      const q = filterText.toLowerCase();
+      notes = notes.filter(n =>
+        (n.title||'').toLowerCase().includes(q) ||
+        (n.content||'').toLowerCase().includes(q) ||
+        (n.tags||[]).some(t => t.toLowerCase().includes(q))
+      );
+    }
+
+    updateNotesStats();
+
+    if (!notes.length) {
+      empty.style.display = 'block';
+      list.innerHTML = '';
+      return;
+    }
+    empty.style.display = 'none';
+
+    // Group by date for Daily notes, flat for others
+    const typeConfig = {
+      quick: {badge:'badge-quick', label:'⚡ Quick', cls:'quick'},
+      daily: {badge:'badge-daily', label:'📅 Daily', cls:'daily'},
+      study: {badge:'badge-study', label:'📚 Study', cls:'study'},
+    };
+
+    list.innerHTML = notes.map(n => {
+      const cfg = typeConfig[n.type] || typeConfig.quick;
+      const preview = (n.content || '').slice(0, 300);
+      const isLong = (n.content || '').length > 200;
+      const tagsHtml = (n.tags||[]).map(t => `<span class="note-tag">${escH(t)}</span>`).join('');
+      return `
+        <div class="note-card ${cfg.cls}" id="ncard-${n.id}">
+          <span class="note-type-badge ${cfg.badge}">${cfg.label}</span>
+          <div class="note-date">${formatNoteDate(n.updatedAt)}</div>
+          ${n.title ? `<div class="note-title">${escH(n.title)}</div>` : ''}
+          <div class="note-preview collapsed" id="nprev-${n.id}">${escH(preview)}${isLong ? '...' : ''}</div>
+          ${tagsHtml ? `<div style="margin-top:6px;">${tagsHtml}</div>` : ''}
+          <div class="note-actions">
+            ${isLong ? `<button class="note-btn" onclick="toggleNoteExpand('${n.id}',this)">▼ Read more</button>` : ''}
+            <button class="note-btn" onclick="openNoteEditor('${n.id}')">✏️ Edit</button>
+            <button class="note-btn" onclick="copyNoteText('${n.id}')">Copy</button>
+            <button class="note-btn" onclick="sendNoteToChat('${n.id}')">💬 To Chat</button>
+            <button class="note-btn danger" onclick="deleteNote('${n.id}')">🗑</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function toggleNoteExpand(id, btn) {
+    const prev = document.getElementById('nprev-' + id);
+    if (prev.classList.contains('collapsed')) {
+      prev.classList.remove('collapsed');
+      btn.textContent = '▲ Show less';
+    } else {
+      prev.classList.add('collapsed');
+      btn.textContent = '▼ Read more';
+    }
+  }
+
+  function updateNotesStats() {
+    const total = notesData.length;
+    const quick = notesData.filter(n => n.type === 'quick').length;
+    const daily = notesData.filter(n => n.type === 'daily').length;
+    const study = notesData.filter(n => n.type === 'study').length;
+    document.getElementById('stat-total').textContent = total + ' note' + (total !== 1 ? 's' : '');
+    document.getElementById('stat-quick').textContent = '⚡ ' + quick + ' quick';
+    document.getElementById('stat-daily').textContent = '📅 ' + daily + ' daily';
+    document.getElementById('stat-study').textContent = '📚 ' + study + ' study';
+  }
+
+  function searchNotes() {
+    renderNotes(document.getElementById('notes-search').value);
+  }
+
+  // ---- NOTE EDITOR ----
+  function openNoteEditor(id) {
+    currentNoteId = id;
+    currentNoteTags = [];
+    currentNoteType = 'quick';
+
+    // Reset editor
+    document.getElementById('note-title-inp').value = '';
+    document.getElementById('note-content-inp').value = '';
+    document.getElementById('note-char-count').textContent = '0 words';
+    document.getElementById('note-ai-result').style.display = 'none';
+    document.getElementById('note-ai-loading').style.display = 'none';
+
+    // Reset type buttons
+    document.querySelectorAll('.note-tag-opt[id^="ntype-"]').forEach(b => b.classList.remove('sel'));
+    document.getElementById('ntype-quick').classList.add('sel');
+
+    // Reset tag buttons
+    document.querySelectorAll('#tag-options .note-tag-opt').forEach(b => b.classList.remove('sel'));
+
+    if (id) {
+      // Edit existing
+      const note = notesData.find(n => n.id === id);
+      if (!note) return;
+      document.getElementById('editor-title-label').textContent = 'Edit Note';
+      document.getElementById('delete-note-btn').style.display = 'inline-block';
+      document.getElementById('note-title-inp').value = note.title || '';
+      document.getElementById('note-content-inp').value = note.content || '';
+      currentNoteType = note.type || 'quick';
+      currentNoteTags = [...(note.tags || [])];
+
+      // Set type button
+      document.querySelectorAll('.note-tag-opt[id^="ntype-"]').forEach(b => b.classList.remove('sel'));
+      const typeBtn = document.getElementById('ntype-' + currentNoteType);
+      if (typeBtn) typeBtn.classList.add('sel');
+
+      // Set tag buttons
+      document.querySelectorAll('#tag-options .note-tag-opt').forEach(b => {
+        const tag = b.textContent.trim();
+        if (currentNoteTags.includes(tag)) b.classList.add('sel');
+      });
+
+      updateNoteWordCount();
+    } else {
+      // New note
+      document.getElementById('editor-title-label').textContent = 'New Note';
+      document.getElementById('delete-note-btn').style.display = 'none';
+    }
+
+    document.getElementById('note-editor').style.display = 'flex';
+    setTimeout(() => document.getElementById('note-content-inp').focus(), 300);
+  }
+
+  function closeNoteEditor() {
+    document.getElementById('note-editor').style.display = 'none';
+    currentNoteId = null;
+    currentNoteTags = [];
+  }
+
+  function selectNoteType(type, btn) {
+    currentNoteType = type;
+    document.querySelectorAll('.note-tag-opt[id^="ntype-"]').forEach(b => b.classList.remove('sel'));
+    btn.classList.add('sel');
+  }
+
+  function toggleTag(btn, tag) {
+    if (currentNoteTags.includes(tag)) {
+      currentNoteTags = currentNoteTags.filter(t => t !== tag);
+      btn.classList.remove('sel');
+    } else {
+      currentNoteTags.push(tag);
+      btn.classList.add('sel');
+    }
+  }
+
+  function updateNoteWordCount() {
+    const t = document.getElementById('note-content-inp').value.trim();
+    const words = t ? t.split(/\s+/).length : 0;
+    const chars = t.length;
+    document.getElementById('note-char-count').textContent = words + ' words · ' + chars + ' chars';
+  }
+
+  document.getElementById('note-content-inp').addEventListener('input', updateNoteWordCount);
+
+  function saveNote() {
+    const title = document.getElementById('note-title-inp').value.trim();
+    const content = document.getElementById('note-content-inp').value.trim();
+    if (!content) { alert('Please write something in the note first.'); return; }
+
+    const now = Date.now();
+    if (currentNoteId) {
+      // Update existing
+      const idx = notesData.findIndex(n => n.id === currentNoteId);
+      if (idx !== -1) {
+        notesData[idx] = { ...notesData[idx], title, content, type: currentNoteType, tags: currentNoteTags, updatedAt: now };
+      }
+    } else {
+      // New note
+      notesData.unshift({ id: getNoteId(), title, content, type: currentNoteType, tags: currentNoteTags, createdAt: now, updatedAt: now });
+    }
+
+    saveNotesToStorage();
+    closeNoteEditor();
+    renderNotes(document.getElementById('notes-search').value);
+  }
+
+  function deleteNote(id) {
+    if (!confirm('Delete this note? This cannot be undone.')) return;
+    notesData = notesData.filter(n => n.id !== id);
+    saveNotesToStorage();
+    renderNotes(document.getElementById('notes-search').value);
+  }
+
+  function deleteCurrentNote() {
+    if (!currentNoteId) return;
+    if (!confirm('Delete this note? This cannot be undone.')) return;
+    notesData = notesData.filter(n => n.id !== currentNoteId);
+    saveNotesToStorage();
+    closeNoteEditor();
+    renderNotes(document.getElementById('notes-search').value);
+  }
+
+  function copyNoteText(id) {
+    const note = notesData.find(n => n.id === id);
+    if (!note) return;
+    const text = (note.title ? note.title + '\n\n' : '') + note.content;
+    navigator.clipboard.writeText(text);
+  }
+
+  function sendNoteToChat(id) {
+    const note = notesData.find(n => n.id === id);
+    if (!note) return;
+    const text = (note.title ? note.title + '\n\n' : '') + note.content;
+    showPage('chat');
+    document.getElementById('chat-inp').value = 'Please check my English and improve this text:\n\n' + text;
+  }
+
+  // ---- AI NOTE ACTIONS ----
+  async function aiNoteAction(action) {
+    const content = document.getElementById('note-content-inp').value.trim();
+    if (!content) { alert('Write something in the note first.'); return; }
+    if (!apiKey) { alert('Set your Groq API key first.'); return; }
+
+    const prompts = {
+      improve: { label: '✨ Improved English', sys: 'You are an expert English editor.', user: 'Improve the English grammar, clarity, and flow of this text. Keep the same meaning. Show only the improved version:\n\n' + content },
+      summarise: { label: '📝 Summary', sys: 'You are a concise summariser.', user: 'Summarise this text into 3-5 clear bullet points. Be brief and informative:\n\n' + content },
+      translate: { label: '🇮🇳 Hindi Translation', sys: 'You are a Hindi-English translator.', user: 'Translate this English text into simple, natural Hindi:\n\n' + content },
+      explain: { label: '💡 Explanation', sys: 'You are a helpful teacher.', user: 'Explain this text in very simple English, as if explaining to a beginner. Use short sentences:\n\n' + content },
+    };
+
+    const p = prompts[action];
+    document.getElementById('note-ai-loading').style.display = 'block';
+    document.getElementById('note-ai-result').style.display = 'none';
+
+    try {
+      const reply = await callGroq([
+        { role: 'system', content: p.sys },
+        { role: 'user', content: p.user }
+      ], 1500);
+      lastAIResult = reply;
+      document.getElementById('note-ai-label').textContent = p.label;
+      document.getElementById('note-ai-text').textContent = reply;
+      document.getElementById('note-ai-result').style.display = 'block';
+    } catch(e) {
+      alert('AI Error: ' + e.message);
+    }
+    document.getElementById('note-ai-loading').style.display = 'none';
+  }
+
+  function applyAIToNote() {
+    if (!lastAIResult) return;
+    document.getElementById('note-content-inp').value = lastAIResult;
+    updateNoteWordCount();
+    document.getElementById('note-ai-result').style.display = 'none';
+  }
+
+  // ---- DOWNLOAD ----
+  function downloadAllNotes() {
+    if (!notesData.length) { alert('No notes to download.'); return; }
+    const sorted = [...notesData].sort((a,b) => b.updatedAt - a.updatedAt);
+    let txt = 'MY NOTES — Grammar AI Agent\n';
+    txt += '='.repeat(50) + '\n';
+    txt += 'Exported: ' + new Date().toLocaleString('en-IN') + '\n';
+    txt += 'Total: ' + notesData.length + ' notes\n';
+    txt += '='.repeat(50) + '\n\n';
+
+    const typeLabels = { quick:'⚡ QUICK NOTE', daily:'📅 DAILY JOURNAL', study:'📚 STUDY NOTE' };
+    sorted.forEach((n, i) => {
+      txt += (i+1) + '. ' + (typeLabels[n.type]||'NOTE') + '\n';
+      txt += 'Date: ' + formatNoteDate(n.updatedAt) + '\n';
+      if (n.title) txt += 'Title: ' + n.title + '\n';
+      if (n.tags && n.tags.length) txt += 'Tags: ' + n.tags.join(', ') + '\n';
+      txt += '-'.repeat(30) + '\n';
+      txt += n.content + '\n';
+      txt += '\n' + '='.repeat(50) + '\n\n';
+    });
+    dlTxt(txt, 'my-notes-' + new Date().toLocaleDateString('en-IN').replace(/\//g,'-') + '.txt');
+  }
+
+  function downloadNotesJSON() {
+    if (!notesData.length) { alert('No notes to backup.'); return; }
+    const json = JSON.stringify(notesData, null, 2);
+    const blob = new Blob([json], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'notes-backup-' + Date.now() + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // Init notes on load
+  renderNotes();
 
   // ====== SHARED UTILS ======
   function openLink(url) { window.open(url, '_blank'); }
