@@ -90,15 +90,16 @@
     .ans-exp{font-size:12px;color:#555;margin-top:4px;line-height:1.5;}
 
     /* FLASHCARD PAGE */
-    .fc-card{width:100%;min-height:200px;cursor:pointer;perspective:1000px;margin:12px 0;}
-    .fc-inner{width:100%;min-height:200px;position:relative;transform-style:preserve-3d;transition:transform 0.5s;}
-    .fc-face{position:absolute;width:100%;min-height:200px;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;}
+    .fc-card{width:100%;cursor:pointer;perspective:1000px;margin:12px 0;}
+    .fc-inner{width:100%;position:relative;transform-style:preserve-3d;transition:transform 0.5s;}
+    .fc-face{position:absolute;top:0;left:0;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;box-sizing:border-box;}
     .fc-front{background:var(--dark);color:#fff;}
     .fc-back{background:#fff;border:2px solid var(--dark);transform:rotateY(180deg);}
+    .fc-sizer{visibility:hidden;padding:20px;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:180px;width:100%;box-sizing:border-box;}
     .fc-hint{font-size:10px;opacity:0.4;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
     .fc-q{font-size:16px;font-weight:500;line-height:1.5;}
     .fc-a{font-size:16px;font-weight:500;color:var(--dark);line-height:1.5;}
-    .fc-exp{font-size:12px;color:#666;margin-top:8px;line-height:1.5;}
+    .fc-exp{font-size:13px;color:#555;margin-top:8px;line-height:1.6;}
     .fc-btns{display:flex;gap:10px;justify-content:center;margin-top:4px;}
     .fc-know{padding:11px 24px;background:#e8fdf0;color:#1a7a45;border:1px solid #9FE1CB;border-radius:10px;font-size:14px;cursor:pointer;font-weight:500;}
     .fc-unkn{padding:11px 24px;background:#fde8e8;color:#a81a1a;border:1px solid #f09595;border-radius:10px;font-size:14px;cursor:pointer;font-weight:500;}
@@ -203,12 +204,19 @@
 
 <!-- SETUP SCREEN -->
 <div id="setup">
-  <div class="setup-card">
-    <h2>Setup Groq API Key</h2>
-    <p>Free AI key — no credit card needed.<br>Get it at <strong>console.groq.com</strong> → API Keys → Create</p>
+  <div class="setup-card" style="max-height:90dvh;overflow-y:auto;">
+    <h2>🔑 Setup AI Keys</h2>
+    <p>Add one or more free AI keys. The app will auto-rotate between them when one is rate limited.</p>
+    <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Groq Key <span style="color:#aaa;font-weight:400;">(console.groq.com)</span></label>
     <input type="password" id="api-inp" placeholder="gsk_..." />
+    <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Cerebras Key <span style="color:#aaa;font-weight:400;">(cloud.cerebras.ai)</span></label>
+    <input type="password" id="api-cerebras-inp" placeholder="csk_..." />
+    <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Gemini Key <span style="color:#aaa;font-weight:400;">(aistudio.google.com/apikey)</span></label>
+    <input type="password" id="api-gemini-inp" placeholder="AIza..." />
+    <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Mistral Key <span style="color:#aaa;font-weight:400;">(console.mistral.ai)</span></label>
+    <input type="password" id="api-mistral-inp" placeholder="..." />
     <button onclick="saveKey()">Save & Start</button>
-    <p class="setup-note">Stored only on your device</p>
+    <p class="setup-note">Keys stored only on your device · At least 1 key required</p>
   </div>
 </div>
 
@@ -217,7 +225,7 @@
   <div id="topbar-inner">
     <div>
       <h1>Grammar AI Agent</h1>
-      <p>by Nik — Groq Free</p>
+      <p id="topbar-sub">by Nik — Multi-AI</p>
     </div>
     <div id="topbar-right">
       <div class="lang-pill">
@@ -351,6 +359,12 @@
               <div class="fc-hint">answer</div>
               <div class="fc-a" id="m-fc-a"></div>
               <div class="fc-exp" id="m-fc-exp"></div>
+            </div>
+            <!-- invisible sizer: keeps card tall enough to show back content -->
+            <div class="fc-sizer" id="m-fc-sizer">
+              <div class="fc-hint">answer</div>
+              <div id="m-fc-a-sizer" style="font-size:16px;font-weight:500;line-height:1.5;"></div>
+              <div id="m-fc-exp-sizer" style="font-size:13px;margin-top:8px;line-height:1.6;"></div>
             </div>
           </div>
         </div>
@@ -794,12 +808,17 @@
 
 <script>
   let apiKey = localStorage.getItem('grammar_key') || '';
+  let cerebrasKey = localStorage.getItem('grammar_cerebras_key') || '';
+  let geminiKey = localStorage.getItem('grammar_gemini_key') || '';
+  let mistralKey = localStorage.getItem('grammar_mistral_key') || '';
+  // Track rate-limit cooldowns per provider
+  const providerCooldown = { groq: 0, cerebras: 0, gemini: 0, mistral: 0 };
   let chatHistory = [];
   let lang = 'en';
   let replyMode = 'bilingual';
   let mExData = null, mVocabData = null, mStoryData = null;
   let mSelTense = '';
-  let mFcCards = [], mFcIdx = 0, mFcFlipped = false, mFcKnown = 0;
+  let mFcCards = [], mFcIdx = 0, mFcFlipped = false, mFcKnown = 0, mFcTopic = '';
   let emailType = 'professional';
   let currentEmailData = null;
 
@@ -818,32 +837,76 @@ Rules:
   ];
 
   // ====== INIT ======
-  if (apiKey) {
+  if (apiKey || cerebrasKey || geminiKey || mistralKey) {
     document.getElementById('setup').style.display = 'none';
     addMsg('bot', 'Namaste Nik! 👋\n\nI am your Grammar AI Agent. Ask me anything in English or Hindi!\n\nUse the bottom tabs — Chat, Paragraph, Exercise, Email, Translate, Notes, Copilot.');
   }
   initMTenseButtons();
+  updateTopbarSub();
   setNowTZ();
 
   // ====== SETUP ======
   function saveKey() {
     const k = document.getElementById('api-inp').value.trim();
-    if (!k.startsWith('gsk_')) { alert('Enter a valid Groq key starting with gsk_'); return; }
-    apiKey = k;
-    localStorage.setItem('grammar_key', k);
+    const kC = document.getElementById('api-cerebras-inp').value.trim();
+    const kG = document.getElementById('api-gemini-inp').value.trim();
+    const kM = document.getElementById('api-mistral-inp').value.trim();
+    if (!k && !kC && !kG && !kM) { alert('Please enter at least one API key.'); return; }
+    if (k && !k.startsWith('gsk_')) { alert('Invalid Groq key — must start with gsk_'); return; }
+    if (k) { apiKey = k; localStorage.setItem('grammar_key', k); }
+    if (kC) { cerebrasKey = kC; localStorage.setItem('grammar_cerebras_key', kC); }
+    if (kG) { geminiKey = kG; localStorage.setItem('grammar_gemini_key', kG); }
+    if (kM) { mistralKey = kM; localStorage.setItem('grammar_mistral_key', kM); }
+    updateTopbarSub();
     document.getElementById('setup').style.display = 'none';
     addMsg('bot', 'Namaste Nik! 👋\n\nI am your Grammar AI Agent. Ask me anything in English or Hindi!\n\nUse the tabs below to navigate.');
   }
 
+  function updateTopbarSub() {
+    const count = [apiKey, cerebrasKey, geminiKey, mistralKey].filter(Boolean).length;
+    const el = document.getElementById('topbar-sub');
+    if (el) el.textContent = 'by Nik — ' + count + ' AI Provider' + (count > 1 ? 's' : '');
+  }
+
   function changeKey() {
-    const current = apiKey ? '(current key saved)' : '(no key set)';
-    const newKey = prompt('Enter your new Groq API key ' + current + ':\n\nGet a free key at console.groq.com → API Keys → Create', '');
-    if (newKey === null) return; // cancelled
-    if (!newKey.trim()) { alert('No key entered. Keeping existing key.'); return; }
-    if (!newKey.trim().startsWith('gsk_')) { alert('Invalid key — must start with gsk_\n\nPlease get your key from console.groq.com'); return; }
-    apiKey = newKey.trim();
-    localStorage.setItem('grammar_key', apiKey);
-    alert('✅ API key updated successfully!');
+    // Show a settings overlay for all keys
+    const overlay = document.createElement('div');
+    overlay.id = 'key-settings-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:380px;max-height:90dvh;overflow-y:auto;">
+        <h2 style="font-size:17px;font-weight:600;margin-bottom:12px;">🔑 Manage API Keys</h2>
+        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Groq <span style="color:#aaa;font-weight:400;">(console.groq.com)</span></label>
+        <input id="ks-groq" type="password" value="${apiKey}" placeholder="gsk_..." style="width:100%;padding:9px 12px;border:1px solid #e8e8e4;border-radius:8px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;"/>
+        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Cerebras <span style="color:#aaa;font-weight:400;">(cloud.cerebras.ai)</span></label>
+        <input id="ks-cerebras" type="password" value="${cerebrasKey}" placeholder="csk_..." style="width:100%;padding:9px 12px;border:1px solid #e8e8e4;border-radius:8px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;"/>
+        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Gemini <span style="color:#aaa;font-weight:400;">(aistudio.google.com)</span></label>
+        <input id="ks-gemini" type="password" value="${geminiKey}" placeholder="AIza..." style="width:100%;padding:9px 12px;border:1px solid #e8e8e4;border-radius:8px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;"/>
+        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Mistral <span style="color:#aaa;font-weight:400;">(console.mistral.ai)</span></label>
+        <input id="ks-mistral" type="password" value="${mistralKey}" placeholder="..." style="width:100%;padding:9px 12px;border:1px solid #e8e8e4;border-radius:8px;font-size:13px;margin-bottom:12px;outline:none;font-family:inherit;"/>
+        <button onclick="saveKeySettings()" style="width:100%;padding:11px;background:#1a1a2e;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;margin-bottom:8px;">Save Keys</button>
+        <button onclick="document.getElementById('key-settings-overlay').remove()" style="width:100%;padding:11px;background:transparent;color:#555;border:1px solid #e8e8e4;border-radius:8px;font-size:14px;cursor:pointer;">Cancel</button>
+        <p style="font-size:11px;color:#aaa;text-align:center;margin-top:8px;">Keys stored only on your device</p>
+      </div>`;
+    document.body.appendChild(overlay);
+  }
+
+  function saveKeySettings() {
+    const k = document.getElementById('ks-groq').value.trim();
+    const kC = document.getElementById('ks-cerebras').value.trim();
+    const kG = document.getElementById('ks-gemini').value.trim();
+    const kM = document.getElementById('ks-mistral').value.trim();
+    if (k) { apiKey = k; localStorage.setItem('grammar_key', k); }
+    else { apiKey = ''; localStorage.removeItem('grammar_key'); }
+    if (kC) { cerebrasKey = kC; localStorage.setItem('grammar_cerebras_key', kC); }
+    else { cerebrasKey = ''; localStorage.removeItem('grammar_cerebras_key'); }
+    if (kG) { geminiKey = kG; localStorage.setItem('grammar_gemini_key', kG); }
+    else { geminiKey = ''; localStorage.removeItem('grammar_gemini_key'); }
+    if (kM) { mistralKey = kM; localStorage.setItem('grammar_mistral_key', kM); }
+    else { mistralKey = ''; localStorage.removeItem('grammar_mistral_key'); }
+    updateTopbarSub();
+    document.getElementById('key-settings-overlay').remove();
+    alert('✅ Keys updated successfully!');
   }
 
   // ====== NAVIGATION ======
@@ -937,7 +1000,7 @@ Rules:
   async function sendMsg() {
     const inp = document.getElementById('chat-inp');
     const text = inp.value.trim();
-    if (!text || !apiKey) return;
+    if (!text || (!apiKey && !cerebrasKey && !geminiKey && !mistralKey)) return;
     inp.value = ''; inp.style.height = 'auto';
     document.getElementById('send-btn').disabled = true;
     addMsg('user', text);
@@ -981,7 +1044,8 @@ Rules:
 
   async function correctPara() {
     const text = document.getElementById('para-in').value.trim();
-    if (!text || !apiKey) { alert(!apiKey ? 'Set API key first.' : 'Enter a paragraph.'); return; }
+    const noKey = !apiKey && !cerebrasKey && !geminiKey && !mistralKey;
+    if (!text || noKey) { alert(noKey ? 'Please set at least one API key — tap 🔑 Key in the top bar.' : 'Enter a paragraph.'); return; }
     const mode = document.getElementById('para-mode').value;
     const out = document.getElementById('para-out');
     out.textContent = 'Correcting...';
@@ -1023,7 +1087,7 @@ Rules:
   }
 
   async function mGenExercise() {
-    if (!mSelTense || !apiKey) return;
+    if (!mSelTense || (!apiKey && !cerebrasKey && !geminiKey && !mistralKey)) return;
     const btn = document.getElementById('m-gen-btn');
     btn.textContent = 'Generating...'; btn.disabled = true;
     document.getElementById('m-qs-area').style.display = 'none';
@@ -1070,7 +1134,7 @@ Rules:
 
   // ====== FLASHCARDS MOBILE ======
   async function mGenFlashCards() {
-    if (!apiKey) { alert('Set API key first.'); return; }
+    if (!apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Please set at least one API key — tap 🔑 Key in the top bar.'); return; }
     const topic = document.getElementById('m-fc-topic').value;
     document.getElementById('m-fc-loading').style.display = 'block';
     document.getElementById('m-fc-area').style.display = 'none';
@@ -1081,7 +1145,7 @@ Rules:
       ], 2500);
       const data = JSON.parse(reply.replace(/```json|```/g,'').trim());
       mFcCards = data.cards || [];
-      mFcCards._topic = data.topic || topic;
+      mFcTopic = data.topic || topic;
       mFcIdx = 0; mFcFlipped = false; mFcKnown = 0;
       mShowFC();
       document.getElementById('m-fc-area').style.display = 'block';
@@ -1095,20 +1159,29 @@ Rules:
     const c = mFcCards[mFcIdx];
     document.getElementById('m-fc-q').textContent = c.question;
     document.getElementById('m-fc-a').textContent = c.answer;
-    const expEl = document.getElementById('m-fc-exp');
-    expEl.innerHTML = '';
-    if (c.explanation) {
-      const engLine = document.createElement('div');
-      engLine.textContent = c.explanation;
-      engLine.style.cssText = 'font-size:12px;color:#555;margin-top:6px;line-height:1.5;';
-      expEl.appendChild(engLine);
+
+    // Build explanation HTML (shared helper)
+    function buildExpHTML(expEl) {
+      expEl.innerHTML = '';
+      if (c.explanation) {
+        const engLine = document.createElement('div');
+        engLine.textContent = c.explanation;
+        engLine.style.cssText = 'font-size:13px;color:#555;margin-top:6px;line-height:1.6;';
+        expEl.appendChild(engLine);
+      }
+      if (c.explanation_hindi) {
+        const hindiLine = document.createElement('div');
+        hindiLine.textContent = '🇮🇳 ' + c.explanation_hindi;
+        hindiLine.style.cssText = 'font-size:13px;color:#1a6fa8;margin-top:5px;line-height:1.6;font-style:italic;';
+        expEl.appendChild(hindiLine);
+      }
     }
-    if (c.explanation_hindi) {
-      const hindiLine = document.createElement('div');
-      hindiLine.textContent = '🇮🇳 ' + c.explanation_hindi;
-      hindiLine.style.cssText = 'font-size:12px;color:#1a6fa8;margin-top:5px;line-height:1.5;font-style:italic;';
-      expEl.appendChild(hindiLine);
-    }
+    buildExpHTML(document.getElementById('m-fc-exp'));
+
+    // Update invisible sizer so card height fits back-face content
+    document.getElementById('m-fc-a-sizer').textContent = c.answer;
+    buildExpHTML(document.getElementById('m-fc-exp-sizer'));
+
     document.getElementById('m-fc-counter').textContent = 'Card ' + (mFcIdx+1) + ' of ' + mFcCards.length;
     document.getElementById('m-fc-bar').style.width = ((mFcIdx+1)/mFcCards.length*100) + '%';
     document.getElementById('m-fc-score').textContent = '✓ ' + mFcKnown;
@@ -1162,12 +1235,14 @@ Rules:
 
   function mDownloadFlashCards() {
     if (!mFcCards.length) { alert('Generate flashcards first.'); return; }
-    const topic = mFcCards._topic || 'FlashCards';
-    let txt = 'FLASHCARDS: ' + topic + '\n' + '='.repeat(50) + '\n\n';
+    const topic = mFcTopic || 'FlashCards';
+    let txt = 'FLASHCARDS: ' + topic.toUpperCase() + '\n' + '='.repeat(50) + '\n';
+    txt += 'Generated: ' + new Date().toLocaleString('en-IN') + '\n';
+    txt += 'Total Cards: ' + mFcCards.length + '\n' + '='.repeat(50) + '\n\n';
     mFcCards.forEach((c, i) => {
       txt += 'Card ' + (i+1) + '\n';
-      txt += 'Q: ' + c.question + '\n';
-      txt += 'A: ' + c.answer + '\n';
+      txt += 'Q: ' + (c.question || '') + '\n';
+      txt += 'A: ' + (c.answer || '') + '\n';
       if (c.explanation) txt += 'Tip: ' + c.explanation + '\n';
       if (c.explanation_hindi) txt += 'Hindi: ' + c.explanation_hindi + '\n';
       txt += '\n';
@@ -1178,7 +1253,7 @@ Rules:
 
   // ====== VOCAB MOBILE ======
   async function mGenVocab() {
-    if (!apiKey) { alert('Set API key first.'); return; }
+    if (!apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Please set at least one API key — tap 🔑 Key in the top bar.'); return; }
     const level = document.getElementById('m-vocab-level').value;
     document.getElementById('m-vocab-loading').style.display = 'block';
     document.getElementById('m-vocab-list').innerHTML = '';
@@ -1215,7 +1290,7 @@ Rules:
 
   // ====== STORY MOBILE ======
   async function mGenStory() {
-    if (!apiKey) { alert('Set API key first.'); return; }
+    if (!apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Please set at least one API key — tap 🔑 Key in the top bar.'); return; }
     const topic = document.getElementById('m-story-topic').value;
     document.getElementById('m-story-loading').style.display = 'block';
     document.getElementById('m-story-card').style.display = 'none';
@@ -1252,7 +1327,7 @@ Rules:
   async function translateEN() {
     const text = document.getElementById('tr-in').value.trim();
     const out = document.getElementById('tr-out');
-    if (!text || !apiKey) { alert(!apiKey ? 'Set API key first.' : 'Enter text.'); return; }
+    if (!text || (!apiKey && !cerebrasKey && !geminiKey && !mistralKey)) { alert(!apiKey && !cerebrasKey && !geminiKey && !mistralKey ? 'Please set at least one API key.' : 'Enter text.'); return; }
     out.textContent = 'Translating...';
     const mode = document.getElementById('tr-mode').value;
     const modes = {
@@ -1272,7 +1347,7 @@ Rules:
   async function translateHI() {
     const text = document.getElementById('hi2en-in').value.trim();
     const out = document.getElementById('hi2en-out');
-    if (!text || !apiKey) { alert(!apiKey ? 'Set API key first.' : 'Enter Hindi text.'); return; }
+    if (!text || (!apiKey && !cerebrasKey && !geminiKey && !mistralKey)) { alert(!apiKey && !cerebrasKey && !geminiKey && !mistralKey ? 'Please set at least one API key.' : 'Enter Hindi text.'); return; }
     out.textContent = 'Translating...';
     const mode = document.getElementById('hi2en-mode').value;
     const modes = {
@@ -1334,7 +1409,7 @@ Rules:
     const subject = document.getElementById('email-subject-in').value.trim();
     const body = document.getElementById('email-body-in').value.trim();
     if (!body) { alert('Please enter your email content.'); return; }
-    if (!apiKey) { alert('Set API key first.'); return; }
+    if (!apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Please set at least one API key — tap 🔑 Key in the top bar.'); return; }
 
     document.getElementById('email-loading').style.display = 'block';
     document.getElementById('email-results').style.display = 'none';
@@ -1434,7 +1509,7 @@ Return ONLY this JSON:
   async function sendCopilot() {
     const text = document.getElementById('copilot-inp').value.trim();
     if (!text) { alert('Please enter a question or message.'); return; }
-    if (!apiKey) { alert('Set your Groq API key first — tap 🔑 Key in the top bar.'); return; }
+    if (!apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Please set at least one API key — tap 🔑 Key in the top bar.'); return; }
     const btn = document.getElementById('copilot-send-btn');
     btn.disabled = true; btn.textContent = 'Thinking...';
     document.getElementById('copilot-loading').style.display = 'block';
@@ -1730,7 +1805,7 @@ Rules:
   async function aiNoteAction(action) {
     const content = document.getElementById('note-content-inp').value.trim();
     if (!content) { alert('Write something in the note first.'); return; }
-    if (!apiKey) { alert('Set your Groq API key first.'); return; }
+    if (!apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Please set at least one API key — tap 🔑 Key in the top bar.'); return; }
 
     const prompts = {
       improve: { label: '✨ Improved English', sys: 'You are an expert English editor.', user: 'Improve the English grammar, clarity, and flow of this text. Keep the same meaning. Show only the improved version:\n\n' + content },
@@ -1823,16 +1898,104 @@ Rules:
     URL.revokeObjectURL(a.href);
   }
 
+  // ====== MULTI-PROVIDER AI ======
+  async function callAI(messages, maxTokens) {
+    const now = Date.now();
+    const providers = [
+      {
+        name: 'groq', key: apiKey,
+        available: !!apiKey && now > providerCooldown.groq,
+        call: async (msgs, mt) => {
+          const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','Authorization':'Bearer ' + apiKey},
+            body: JSON.stringify({model:'llama-3.3-70b-versatile', max_tokens: mt||1200, messages: msgs})
+          });
+          if (res.status === 429) { providerCooldown.groq = Date.now() + 65000; throw new Error('rate_limit'); }
+          const data = await res.json();
+          if (data.error) throw new Error(data.error.message);
+          return data.choices[0].message.content;
+        }
+      },
+      {
+        name: 'cerebras', key: cerebrasKey,
+        available: !!cerebrasKey && now > providerCooldown.cerebras,
+        call: async (msgs, mt) => {
+          const res = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','Authorization':'Bearer ' + cerebrasKey},
+            body: JSON.stringify({model:'llama-3.3-70b', max_tokens: mt||1200, messages: msgs})
+          });
+          if (res.status === 429) { providerCooldown.cerebras = Date.now() + 65000; throw new Error('rate_limit'); }
+          const data = await res.json();
+          if (data.error) throw new Error(data.error.message);
+          return data.choices[0].message.content;
+        }
+      },
+      {
+        name: 'gemini', key: geminiKey,
+        available: !!geminiKey && now > providerCooldown.gemini,
+        call: async (msgs, mt) => {
+          // Convert OpenAI-style messages to Gemini format
+          const systemMsg = msgs.find(m => m.role === 'system');
+          const userMsgs = msgs.filter(m => m.role !== 'system');
+          const geminiMsgs = userMsgs.map(m => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{text: m.content}]
+          }));
+          const body = { contents: geminiMsgs, generationConfig: { maxOutputTokens: mt||1200 } };
+          if (systemMsg) body.systemInstruction = { parts: [{text: systemMsg.content}] };
+          const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + geminiKey, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(body)
+          });
+          if (res.status === 429) { providerCooldown.gemini = Date.now() + 65000; throw new Error('rate_limit'); }
+          const data = await res.json();
+          if (data.error) throw new Error(data.error.message);
+          return data.candidates[0].content.parts[0].text;
+        }
+      },
+      {
+        name: 'mistral', key: mistralKey,
+        available: !!mistralKey && now > providerCooldown.mistral,
+        call: async (msgs, mt) => {
+          const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','Authorization':'Bearer ' + mistralKey},
+            body: JSON.stringify({model:'mistral-small-latest', max_tokens: mt||1200, messages: msgs})
+          });
+          if (res.status === 429) { providerCooldown.mistral = Date.now() + 65000; throw new Error('rate_limit'); }
+          const data = await res.json();
+          if (data.error) throw new Error(data.error.message || data.error);
+          return data.choices[0].message.content;
+        }
+      }
+    ];
+
+    const available = providers.filter(p => p.available);
+    if (!available.length) {
+      // Find when the next provider resets
+      const nextReset = Math.min(...providers.filter(p => p.key).map(p => providerCooldown[p.name]));
+      const waitSecs = Math.max(0, Math.ceil((nextReset - Date.now()) / 1000));
+      throw new Error('All AI providers are rate limited. Please wait ~' + waitSecs + 's and try again.');
+    }
+
+    for (const provider of available) {
+      try {
+        const result = await provider.call(messages, maxTokens);
+        return result;
+      } catch(e) {
+        if (e.message === 'rate_limit') { continue; } // try next
+        throw e; // real error, don't retry
+      }
+    }
+    throw new Error('All available AI providers failed. Please try again shortly.');
+  }
+
+  // Keep callGroq as alias for backward compatibility
   async function callGroq(messages, maxTokens) {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','Authorization':'Bearer ' + apiKey},
-      body: JSON.stringify({model:'llama-3.3-70b-versatile', max_tokens: maxTokens||1200, messages})
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    if (!data.choices?.[0]?.message?.content) throw new Error('No response from Groq.');
-    return data.choices[0].message.content;
+    return callAI(messages, maxTokens);
   }
 </script>
 </body>
