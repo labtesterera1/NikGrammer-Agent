@@ -12,191 +12,227 @@
   <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');</script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-    :root{--dark:#1a1a2e;--accent:#4f46e5;--bg:#f5f5f0;--white:#fff;--border:#e8e8e4;--text:#1a1a1a;--muted:#888;--radius:12px;}
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
+    :root{
+      --dark:#0f172a;
+      --dark2:#1e293b;
+      --accent:#6366f1;
+      --accent2:#8b5cf6;
+      --green:#10b981;
+      --orange:#f59e0b;
+      --red:#ef4444;
+      --bg:#f1f5f9;
+      --card:#ffffff;
+      --border:#e2e8f0;
+      --text:#0f172a;
+      --muted:#64748b;
+      --radius:14px;
+      --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md:0 4px 12px rgba(0,0,0,0.1);
+    }
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
 
-    /* TOP BAR */
-    #topbar{background:var(--dark);color:#fff;padding:env(safe-area-inset-top) 16px 0;flex-shrink:0;}
+    /* TOP BAR — gradient */
+    #topbar{background:linear-gradient(135deg,var(--dark) 0%,var(--dark2) 100%);color:#fff;padding:env(safe-area-inset-top) 16px 0;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
     #topbar-inner{display:flex;align-items:center;justify-content:space-between;height:52px;}
-    #topbar h1{font-size:15px;font-weight:600;letter-spacing:0.3px;}
-    #topbar p{font-size:10px;opacity:0.5;margin-top:1px;}
-    #topbar-right{display:flex;align-items:center;gap:10px;}
-    .lang-pill{display:flex;gap:3px;background:rgba(255,255,255,0.12);border-radius:20px;padding:3px;}
-    .lang-pill button{padding:4px 10px;border:none;border-radius:16px;font-size:11px;font-weight:500;cursor:pointer;background:transparent;color:rgba(255,255,255,0.65);transition:all 0.15s;}
-    .lang-pill button.active{background:#fff;color:var(--dark);}
+    #topbar h1{font-size:15px;font-weight:700;letter-spacing:0.2px;background:linear-gradient(90deg,#fff,#a5b4fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    #topbar p{font-size:10px;opacity:0.5;margin-top:1px;-webkit-text-fill-color:rgba(255,255,255,0.5);}
+    #topbar-right{display:flex;align-items:center;gap:8px;}
+    .lang-pill{display:flex;gap:3px;background:rgba(255,255,255,0.1);border-radius:20px;padding:3px;border:1px solid rgba(255,255,255,0.15);}
+    .lang-pill button{padding:4px 10px;border:none;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:rgba(255,255,255,0.6);transition:all 0.15s;}
+    .lang-pill button.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 2px 6px rgba(99,102,241,0.4);}
 
-    /* BOTTOM NAV */
-    #bottomnav{display:flex;background:var(--dark);padding-bottom:env(safe-area-inset-bottom);flex-shrink:0;border-top:1px solid rgba(255,255,255,0.08);}
-    .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;border:none;background:transparent;color:rgba(255,255,255,0.5);cursor:pointer;font-size:9px;gap:3px;transition:color 0.15s;}
-    .bnav-btn .bi{font-size:18px;line-height:1;}
-    .bnav-btn.active{color:#fff;}
-    .bnav-btn.active .bi{filter:drop-shadow(0 0 6px rgba(255,255,255,0.4));}
+    /* BOTTOM NAV — vivid gradient with glow */
+    #bottomnav{display:flex;background:linear-gradient(180deg,#16103a 0%,#0a0718 100%);padding-bottom:env(safe-area-inset-bottom);flex-shrink:0;border-top:2px solid rgba(99,102,241,0.35);overflow-x:auto;-webkit-overflow-scrolling:touch;box-shadow:0 -4px 20px rgba(99,102,241,0.18);}
+    #bottomnav::-webkit-scrollbar{display:none;}
+    .bnav-btn{flex:1;min-width:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 4px 7px;border:none;background:transparent;color:rgba(255,255,255,0.38);cursor:pointer;font-size:10px;font-weight:500;gap:3px;transition:all 0.22s;letter-spacing:0.2px;font-family:inherit;white-space:nowrap;position:relative;}
+    .bnav-btn .bi{font-size:24px;line-height:1;transition:transform 0.22s,filter 0.22s;display:block;}
+    .bnav-btn.active{color:#c4b5fd;}
+    .bnav-btn.active .bi{transform:scale(1.22);filter:drop-shadow(0 0 10px rgba(167,139,250,0.85));}
+    .bnav-btn.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:36px;height:3px;background:linear-gradient(90deg,#818cf8,#a78bfa,#c084fc);border-radius:0 0 6px 6px;box-shadow:0 0 10px rgba(167,139,250,0.6);}
+    .bnav-btn.active::after{content:'';position:absolute;top:4px;left:50%;transform:translateX(-50%);width:44px;height:44px;background:radial-gradient(ellipse,rgba(99,102,241,0.22) 0%,transparent 70%);border-radius:50%;pointer-events:none;}
+    .bnav-btn:hover:not(.active){color:rgba(255,255,255,0.65);}
 
     /* PAGES */
-    #pages{flex:1;overflow:hidden;position:relative;}
-    .page{display:none;flex-direction:column;height:100%;overflow:hidden;}
+    #pages{flex:1;overflow:hidden;position:relative;min-height:0;}
+    .page{display:none;flex-direction:column;height:100%;overflow:hidden;min-height:0;}
     .page.active{display:flex;}
 
     /* CHAT PAGE */
-    #msg-list{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
+    #msg-list{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px;min-height:0;background:var(--bg);}
     .msg{display:flex;flex-direction:column;max-width:88%;}
     .msg.user{align-self:flex-end;align-items:flex-end;}
     .msg.bot{align-self:flex-start;}
-    .msg-label{font-size:10px;color:var(--muted);margin-bottom:3px;}
-    .bubble{padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.6;white-space:pre-wrap;}
-    .msg.user .bubble{background:var(--dark);color:#fff;border-bottom-right-radius:4px;}
-    .msg.bot .bubble{background:#fff;border:1px solid var(--border);border-bottom-left-radius:4px;}
+    .msg-label{font-size:10px;color:var(--muted);margin-bottom:3px;font-weight:500;}
+    .bubble{padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word;box-shadow:var(--shadow);}
+    .msg.user .bubble{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-bottom-right-radius:4px;}
+    .msg.bot .bubble{background:#fff;border:1px solid var(--border);border-bottom-left-radius:4px;color:var(--text);}
     .typing{display:flex;gap:4px;padding:12px 16px;}
     .dot{width:7px;height:7px;border-radius:50%;background:#bbb;animation:bop 1.2s infinite;}
     .dot:nth-child(2){animation-delay:.2s;}.dot:nth-child(3){animation-delay:.4s;}
     @keyframes bop{0%,80%,100%{transform:scale(0.7);opacity:0.4}40%{transform:scale(1);opacity:1}}
 
-    #chat-input-row{padding:10px 12px;background:#fff;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));}
-    #chat-inp{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:22px;font-size:14px;font-family:inherit;resize:none;min-height:42px;max-height:110px;outline:none;line-height:1.5;}
-    #chat-inp:focus{border-color:var(--dark);}
-    #send-btn{width:42px;height:42px;border-radius:50%;background:var(--dark);color:#fff;border:none;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
-    #send-btn:disabled{opacity:0.35;}
+    #chat-input-row{padding:10px 12px;background:#fff;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 8px rgba(0,0,0,0.04);}
+    #chat-inp{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:22px;font-size:14px;font-family:inherit;resize:none;min-height:42px;max-height:110px;outline:none;line-height:1.5;background:#f8fafc;transition:border-color 0.15s;}
+    #chat-inp:focus{border-color:var(--accent);background:#fff;}
+    #send-btn{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(99,102,241,0.4);}
+    #send-btn:disabled{opacity:0.35;box-shadow:none;}
 
-    /* REPLY MODE */
-    .mode-bar{display:flex;gap:6px;padding:8px 12px;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;}
-    .mode-chip{padding:5px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;cursor:pointer;white-space:nowrap;background:#fff;color:#555;flex-shrink:0;}
-    .mode-chip.active{background:var(--dark);color:#fff;border-color:var(--dark);}
+    /* MODE BAR */
+    .mode-bar{display:flex;gap:6px;padding:8px 12px;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;}
+    .mode-bar::-webkit-scrollbar{display:none;}
+    .mode-chip{padding:5px 14px;border:1.5px solid var(--border);border-radius:20px;font-size:11px;cursor:pointer;white-space:nowrap;background:#f8fafc;color:var(--muted);flex-shrink:0;font-family:inherit;font-weight:500;transition:all 0.15s;}
+    .mode-chip.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:0 2px 6px rgba(99,102,241,0.3);}
 
     /* QUICK CHIPS */
-    .quick-bar{display:flex;gap:6px;padding:8px 12px;overflow-x:auto;flex-shrink:0;}
-    .quick-chip{padding:6px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;cursor:pointer;white-space:nowrap;background:#fff;color:#555;flex-shrink:0;}
+    .quick-bar{display:flex;gap:6px;padding:8px 12px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;background:#fff;border-bottom:1px solid var(--border);}
+    .quick-bar::-webkit-scrollbar{display:none;}
+    .quick-chip{padding:6px 13px;border:1.5px solid var(--border);border-radius:20px;font-size:11px;cursor:pointer;white-space:nowrap;background:#f8fafc;color:#475569;flex-shrink:0;font-weight:500;transition:all 0.15s;}
+    .quick-chip:active{background:var(--accent);color:#fff;border-color:var(--accent);}
 
-    /* PARAGRAPH PAGE */
-    .page-scroll{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
-    .card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
-    .card h3{font-size:13px;font-weight:500;margin-bottom:8px;color:#444;}
-    textarea.full{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;resize:none;min-height:120px;outline:none;line-height:1.6;}
-    textarea.full:focus{border-color:var(--dark);}
-    .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-    .btn-primary{padding:9px 18px;background:var(--dark);color:#fff;border:none;border-radius:9px;font-size:13px;cursor:pointer;}
-    .btn-secondary{padding:9px 14px;background:transparent;color:#555;border:1px solid var(--border);border-radius:9px;font-size:13px;cursor:pointer;}
-    select.ctrl{padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:#fff;outline:none;}
-    .output-box{padding:12px;border:1px solid var(--border);border-radius:10px;font-size:14px;line-height:1.7;white-space:pre-wrap;min-height:80px;color:var(--text);}
-    .output-placeholder{color:#ccc;font-style:italic;}
+    /* CARDS & PAGE CONTENT */
+    .page-scroll{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;min-height:0;-webkit-overflow-scrolling:touch;background:var(--bg);}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+    .card h3{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--dark);}
+    textarea.full{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;resize:none;min-height:120px;outline:none;line-height:1.6;background:#f8fafc;transition:border-color 0.15s;}
+    textarea.full:focus{border-color:var(--accent);background:#fff;}
+    .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;}
+    .btn-primary{padding:10px 20px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:600;box-shadow:0 2px 6px rgba(99,102,241,0.35);transition:opacity 0.15s;}
+    .btn-primary:active{opacity:0.85;}
+    .btn-secondary{padding:10px 14px;background:#fff;color:var(--muted);border:1.5px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;transition:all 0.15s;}
+    .btn-secondary:active{background:var(--bg);}
+    select.ctrl{padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;background:#f8fafc;outline:none;font-family:inherit;color:var(--text);}
+    .output-box{padding:14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;line-height:1.7;white-space:pre-wrap;min-height:80px;color:var(--text);word-break:break-word;background:#f8fafc;}
+    .output-placeholder{color:#cbd5e1;font-style:italic;}
 
     /* TENSE PAGE */
     .tense-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
-    .tense-btn{padding:10px 8px;border:1px solid var(--border);border-radius:9px;font-size:12px;background:#fff;color:#444;cursor:pointer;text-align:center;}
-    .tense-btn.sel{background:var(--dark);color:#fff;border-color:var(--dark);}
-    .q-item{padding:10px 12px;background:#f9f9f7;border:1px solid var(--border);border-radius:8px;font-size:14px;line-height:1.6;}
-    .q-num{font-weight:600;color:var(--dark);margin-right:6px;}
-    .ans-item{padding:10px 12px;background:#fff;border:1px solid #c9e8d0;border-radius:8px;}
-    .ans-word{color:#1a7a45;font-weight:600;}
-    .ans-exp{font-size:12px;color:#555;margin-top:4px;line-height:1.5;}
+    .tense-btn{padding:10px 8px;border:1.5px solid var(--border);border-radius:10px;font-size:12px;background:#fff;color:#475569;cursor:pointer;text-align:center;font-weight:500;transition:all 0.15s;box-shadow:var(--shadow);}
+    .tense-btn:active{background:var(--bg);}
+    .tense-btn.sel{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(99,102,241,0.4);}
+    .q-item{padding:12px 14px;background:#fff;border:1.5px solid var(--border);border-radius:10px;font-size:14px;line-height:1.6;box-shadow:var(--shadow);}
+    .q-num{font-weight:700;color:var(--accent);margin-right:6px;}
+    .ans-item{padding:12px 14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;margin-bottom:6px;}
+    .ans-word{color:var(--green);font-weight:700;}
+    .ans-exp{font-size:12px;color:#475569;margin-top:4px;line-height:1.5;}
 
     /* FLASHCARD PAGE */
     .fc-card{width:100%;cursor:pointer;perspective:1000px;margin:12px 0;}
     .fc-inner{width:100%;position:relative;transform-style:preserve-3d;transition:transform 0.5s;}
-    .fc-face{position:absolute;top:0;left:0;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;box-sizing:border-box;}
-    .fc-front{background:var(--dark);color:#fff;}
-    .fc-back{background:#fff;border:2px solid var(--dark);transform:rotateY(180deg);}
-    .fc-sizer{visibility:hidden;padding:20px;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:180px;width:100%;box-sizing:border-box;}
-    .fc-hint{font-size:10px;opacity:0.4;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
-    .fc-q{font-size:16px;font-weight:500;line-height:1.5;}
-    .fc-a{font-size:16px;font-weight:500;color:var(--dark);line-height:1.5;}
-    .fc-exp{font-size:13px;color:#555;margin-top:8px;line-height:1.6;}
-    .fc-btns{display:flex;gap:10px;justify-content:center;margin-top:4px;}
-    .fc-know{padding:11px 24px;background:#e8fdf0;color:#1a7a45;border:1px solid #9FE1CB;border-radius:10px;font-size:14px;cursor:pointer;font-weight:500;}
-    .fc-unkn{padding:11px 24px;background:#fde8e8;color:#a81a1a;border:1px solid #f09595;border-radius:10px;font-size:14px;cursor:pointer;font-weight:500;}
+    .fc-face{position:absolute;top:0;left:0;width:100%;height:100%;backface-visibility:hidden;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;text-align:center;box-sizing:border-box;}
+    .fc-front{background:linear-gradient(135deg,var(--dark) 0%,var(--dark2) 60%,#312e81 100%);color:#fff;box-shadow:var(--shadow-md);}
+    .fc-back{background:#fff;border:2px solid var(--accent);transform:rotateY(180deg);box-shadow:var(--shadow-md);}
+    .fc-sizer{visibility:hidden;padding:22px;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:180px;width:100%;box-sizing:border-box;}
+    .fc-hint{font-size:10px;opacity:0.45;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;font-weight:600;}
+    .fc-q{font-size:17px;font-weight:600;line-height:1.5;}
+    .fc-a{font-size:17px;font-weight:600;color:var(--accent);line-height:1.5;}
+    .fc-exp{font-size:13px;color:#475569;margin-top:8px;line-height:1.6;}
+    .fc-btns{display:flex;gap:12px;justify-content:center;margin-top:4px;}
+    .fc-know{padding:11px 24px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46;border:none;border-radius:12px;font-size:14px;cursor:pointer;font-weight:600;box-shadow:0 2px 6px rgba(16,185,129,0.2);}
+    .fc-unkn{padding:11px 24px;background:linear-gradient(135deg,#fee2e2,#fecaca);color:#991b1b;border:none;border-radius:12px;font-size:14px;cursor:pointer;font-weight:600;box-shadow:0 2px 6px rgba(239,68,68,0.2);}
     .fc-nav{display:flex;gap:8px;justify-content:center;margin-top:8px;}
-    .fc-nav button{padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:#fff;color:#444;cursor:pointer;font-size:13px;}
-    .fc-prog{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:8px 0;}
-    .fc-prog-bar{height:100%;background:var(--dark);border-radius:2px;transition:width 0.3s;}
-    .fc-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);}
+    .fc-nav button{padding:8px 18px;border:1.5px solid var(--border);border-radius:10px;background:#fff;color:#475569;cursor:pointer;font-size:13px;font-weight:500;box-shadow:var(--shadow);}
+    .fc-prog{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:8px 0;}
+    .fc-prog-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width 0.3s;}
+    .fc-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-weight:500;}
 
-    /* VOCAB PAGE */
-    .vocab-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
-    .vocab-word{font-size:16px;font-weight:600;color:var(--dark);}
-    .vocab-type{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;margin-left:6px;background:#e8f4fd;color:#1a6fa8;}
-    .vocab-meaning{font-size:13px;color:#555;margin:6px 0 8px;}
-    .vocab-ex{font-size:12px;color:#777;border-left:3px solid var(--border);padding-left:10px;line-height:1.6;}
+    /* VOCAB */
+    .vocab-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);}
+    .vocab-word{font-size:17px;font-weight:700;color:var(--dark);}
+    .vocab-type{display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:600;margin-left:6px;background:linear-gradient(135deg,#e0e7ff,#ede9fe);color:var(--accent);}
+    .vocab-meaning{font-size:13px;color:#475569;margin:6px 0 8px;font-weight:500;}
+    .vocab-ex{font-size:12px;color:#64748b;border-left:3px solid var(--accent);padding-left:10px;line-height:1.6;}
 
-    /* WORLD AI PAGE */
-    .ai-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
-    .ai-icon{font-size:28px;flex-shrink:0;}
-    .ai-info{flex:1;}
-    .ai-name{font-size:14px;font-weight:500;}
-    .ai-company{font-size:11px;color:var(--muted);}
-    .ai-desc{font-size:12px;color:#666;margin-top:4px;line-height:1.4;}
-    .ai-open{padding:6px 14px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;flex-shrink:0;}
-    .cat-badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:500;background:#f5f5f0;color:#666;margin-left:4px;}
+    /* STORY */
+    .story-title{font-size:18px;font-weight:700;color:var(--dark);margin-bottom:4px;}
+    .story-meta{font-size:11px;color:var(--muted);margin-bottom:12px;font-weight:500;}
+    .story-body{font-size:14px;line-height:1.9;white-space:pre-wrap;color:var(--text);}
+    .story-lesson{margin-top:14px;padding:14px;background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border-radius:10px;font-size:13px;color:#0369a1;line-height:1.6;border:1px solid #bae6fd;}
 
-    /* STORY PAGE */
-    .story-title{font-size:18px;font-weight:600;color:var(--dark);margin-bottom:4px;}
-    .story-meta{font-size:11px;color:var(--muted);margin-bottom:12px;}
-    .story-body{font-size:14px;line-height:1.85;white-space:pre-wrap;}
-    .story-lesson{margin-top:14px;padding:12px;background:#f5f5f0;border-radius:8px;font-size:13px;color:#555;line-height:1.6;}
+    /* EMAIL */
+    .email-type-btn{flex:1;padding:9px 6px;border:1.5px solid var(--border);border-radius:10px;font-size:11px;background:#f8fafc;color:var(--muted);cursor:pointer;text-align:center;transition:all 0.15s;font-weight:500;}
+    .email-type-btn.sel{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:0 2px 6px rgba(99,102,241,0.3);}
+    .suggestion-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);}
+    .suggestion-label{font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+    .suggestion-body{font-size:14px;line-height:1.7;white-space:pre-wrap;color:var(--text);}
+    .suggestion-footer{display:flex;gap:8px;margin-top:10px;}
 
-    /* SETUP SCREEN */
-    #setup{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;}
-    .setup-card{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:380px;}
-    .setup-card h2{font-size:17px;font-weight:600;margin-bottom:6px;}
-    .setup-card p{font-size:13px;color:#666;line-height:1.6;margin-bottom:16px;}
-    .setup-card input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;}
-    .setup-card input:focus{border-color:var(--dark);}
-    .setup-card button{width:100%;padding:11px;background:var(--dark);color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;}
-    .setup-note{font-size:11px;color:#aaa;text-align:center;margin-top:8px;}
+    /* NOTES */
+    .note-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;position:relative;box-shadow:var(--shadow);}
+    .note-card.quick{border-left:4px solid var(--orange);}
+    .note-card.daily{border-left:4px solid var(--green);}
+    .note-card.study{border-left:4px solid var(--accent);}
+    .note-card.private{border-left:4px solid var(--red);background:#fff8f8;}
+    .note-type-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+    .badge-quick{background:#fef3c7;color:#92400e;}
+    .badge-daily{background:#d1fae5;color:#065f46;}
+    .badge-study{background:#ede9fe;color:#4c1d95;}
+    .badge-private{background:#fee2e2;color:#991b1b;}
+
+    /* DOWNLOAD OVERLAY */
+    .dl-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:150;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px);}
+    .dl-sheet{background:#fff;border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:12px;box-shadow:0 -4px 24px rgba(0,0,0,0.15);}
+    .dl-title{font-size:17px;font-weight:700;color:var(--dark);}
+    .dl-option{display:flex;align-items:center;gap:14px;padding:14px;border:1.5px solid var(--border);border-radius:14px;cursor:pointer;transition:all 0.15s;background:#f8fafc;}
+    .dl-option:active{background:#f1f5f9;border-color:var(--accent);}
+    .dl-option-icon{font-size:26px;flex-shrink:0;}
+    .dl-option-label{font-size:14px;font-weight:600;color:var(--dark);}
+    .dl-option-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+
+    /* PRIVATE LOCK */
+    .lock-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.95);z-index:120;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px;backdrop-filter:blur(4px);}
+    .lock-card{background:#fff;border-radius:24px;padding:30px 24px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.3);}
+    .lock-icon{font-size:52px;}
+    .lock-title{font-size:20px;font-weight:700;color:var(--dark);}
+    .lock-sub{font-size:13px;color:var(--muted);line-height:1.6;}
+    .lock-inp{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:12px;font-size:18px;font-family:inherit;outline:none;text-align:center;letter-spacing:4px;transition:border-color 0.15s;}
+    .lock-inp:focus{border-color:var(--red);}
+    .lock-btn{width:100%;padding:13px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;border-radius:12px;font-size:15px;cursor:pointer;font-family:inherit;font-weight:700;box-shadow:0 4px 12px rgba(239,68,68,0.3);}
+    .lock-cancel{font-size:13px;color:var(--muted);cursor:pointer;text-decoration:underline;}
+
+    /* SETUP */
+    #setup{position:fixed;inset:0;background:rgba(15,23,42,0.8);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;backdrop-filter:blur(4px);}
+    .setup-card{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:380px;box-shadow:0 20px 40px rgba(0,0,0,0.2);}
+    .setup-card h2{font-size:18px;font-weight:700;margin-bottom:6px;color:var(--dark);}
+    .setup-card p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;}
+    .setup-card input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px;background:#f8fafc;transition:border-color 0.15s;}
+    .setup-card input:focus{border-color:var(--accent);}
+    .setup-card button{width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-weight:700;box-shadow:0 4px 12px rgba(99,102,241,0.35);}
+    .setup-note{font-size:11px;color:#94a3b8;text-align:center;margin-top:8px;}
+
+    /* VOICE BUTTON */
+    .voice-btn{width:42px;height:42px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all 0.2s;flex-shrink:0;}
+    .voice-btn.idle{background:#f1f5f9;color:var(--muted);}
+    .voice-btn.listening{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;box-shadow:0 0 0 0 rgba(239,68,68,0.4);animation:pulse-mic 1.5s infinite;}
+    @keyframes pulse-mic{0%{box-shadow:0 0 0 0 rgba(239,68,68,0.4);}70%{box-shadow:0 0 0 10px rgba(239,68,68,0);}100%{box-shadow:0 0 0 0 rgba(239,68,68,0);}}
+    .voice-status{font-size:11px;color:var(--muted);margin-top:4px;text-align:center;min-height:14px;}
+    .voice-status.active{color:var(--red);font-weight:600;}
 
     /* UTILS */
     .loading{text-align:center;padding:24px;color:var(--muted);font-size:13px;}
     ::-webkit-scrollbar{width:3px;}
-    ::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px;}
+    ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px;}
 
-    /* EMAIL PAGE */
-    .email-type-btn{flex:1;padding:9px 6px;border:1px solid var(--border);border-radius:9px;font-size:12px;background:#fff;color:#555;cursor:pointer;text-align:center;transition:all 0.15s;}
-    .email-type-btn.sel{background:var(--dark);color:#fff;border-color:var(--dark);}
-    .suggestion-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
-    .suggestion-label{font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
-    .suggestion-body{font-size:14px;line-height:1.7;white-space:pre-wrap;color:var(--text);}
-    .suggestion-footer{display:flex;gap:8px;margin-top:10px;}
-
-    /* NEWS PAGE */
-    .news-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
-    .news-tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
-    .tag-grammar{background:#e8f4fd;color:#1a6fa8;}
-    .tag-vocab{background:#e8fdf0;color:#1a7a45;}
-    .tag-reading{background:#fdf4e8;color:#a86a1a;}
-    .tag-news{background:#f0e8fd;color:#6a1aa8;}
-    .tag-practice{background:#fde8e8;color:#a81a1a;}
-    .news-title{font-size:14px;font-weight:500;line-height:1.4;margin-bottom:5px;color:var(--text);}
-    .news-desc{font-size:12px;color:#777;line-height:1.5;margin-bottom:8px;}
-    .news-footer{display:flex;align-items:center;justify-content:space-between;}
-    .news-source{font-size:11px;color:#aaa;}
-    .news-open{padding:5px 12px;background:var(--dark);color:#fff;border:none;border-radius:7px;font-size:11px;cursor:pointer;}
-    /* NOTES PAGE */
-    .note-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;position:relative;}
-    .note-card.quick{border-left:4px solid #f59e0b;}
-    .note-card.daily{border-left:4px solid #10b981;}
-    .note-card.study{border-left:4px solid #6366f1;}
-    .note-type-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
-    .badge-quick{background:#fef3c7;color:#92400e;}
-    .badge-daily{background:#d1fae5;color:#065f46;}
-    .badge-study{background:#ede9fe;color:#4c1d95;}
-    .note-date{font-size:10px;color:var(--muted);margin-bottom:6px;}
-    .note-title{font-size:13px;font-weight:600;color:var(--dark);margin-bottom:4px;}
-    .note-preview{font-size:13px;color:#444;line-height:1.6;white-space:pre-wrap;}
+    /* NOTE EXTRAS */
+    .note-date{font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:500;}
+    .note-title{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px;}
+    .note-preview{font-size:13px;color:#475569;line-height:1.6;white-space:pre-wrap;}
     .note-preview.collapsed{max-height:60px;overflow:hidden;position:relative;}
     .note-preview.collapsed::after{content:'';position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(transparent,#fff);}
     .note-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
-    .note-btn{padding:5px 10px;border:1px solid var(--border);border-radius:7px;font-size:11px;background:#fff;color:#555;cursor:pointer;font-family:inherit;}
-    .note-btn.danger{color:#dc2626;border-color:#fca5a5;}
-    .note-btn.ai{color:#7c3aed;border-color:#c4b5fd;}
-    .note-search{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#fff;}
-    .note-search:focus{border-color:var(--dark);}
+    .note-btn{padding:6px 11px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;background:#f8fafc;color:#475569;cursor:pointer;font-family:inherit;font-weight:500;}
+    .note-btn.danger{color:var(--red);border-color:#fca5a5;background:#fff8f8;}
+    .note-btn.ai{color:var(--accent2);border-color:#ddd6fe;background:#faf5ff;}
+    .note-search{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#f8fafc;}
+    .note-search:focus{border-color:var(--accent);}
     .notes-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;}
-    .note-tag{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;background:#f0f0ee;color:#666;margin:2px;}
-    .note-editor-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;flex-direction:column;}
-    .note-editor-inner{background:#fff;margin-top:auto;border-radius:20px 20px 0 0;padding:20px;max-height:92dvh;display:flex;flex-direction:column;gap:12px;overflow-y:auto;}
-    .note-editor-title{font-size:16px;font-weight:600;color:var(--dark);}
+    .note-tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;background:#e0e7ff;color:var(--accent);margin:2px;font-weight:600;}
+    .note-editor-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:100;display:flex;flex-direction:column;backdrop-filter:blur(2px);}
+    .note-editor-inner{background:#fff;margin-top:auto;border-radius:24px 24px 0 0;padding:22px;max-height:92dvh;display:flex;flex-direction:column;gap:12px;overflow-y:auto;box-shadow:0 -4px 24px rgba(0,0,0,0.15);}
+    .note-editor-title{font-size:17px;font-weight:700;color:var(--dark);}
     .note-tag-sel{display:flex;gap:6px;flex-wrap:wrap;}
-    .note-tag-opt{padding:5px 12px;border:1px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;color:#555;font-family:inherit;}
-    .note-tag-opt.sel{background:var(--dark);color:#fff;border-color:var(--dark);}
-    .ai-result-box{padding:12px;border:1px solid #c4b5fd;border-radius:10px;background:#faf5ff;font-size:13px;line-height:1.7;white-space:pre-wrap;color:#1a1a2e;display:none;}
+    .note-tag-opt{padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;background:#f8fafc;color:var(--muted);font-family:inherit;font-weight:500;transition:all 0.15s;}
+    .note-tag-opt.sel{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;}
+    .ai-result-box{padding:14px;border:1.5px solid #ddd6fe;border-radius:12px;background:linear-gradient(135deg,#faf5ff,#f5f3ff);font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--dark);display:none;}
 
   </style>
 </head>
@@ -266,8 +302,16 @@
     <div class="page-scroll">
       <div class="card">
         <h3>Your Paragraph</h3>
-        <textarea class="full" id="para-in" placeholder="Paste or type your paragraph here... No word limit!" oninput="updateWC()"></textarea>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px;" id="wc-label">0 words</div>
+        <textarea class="full" id="para-in" placeholder="Paste or type your paragraph here... No word limit! You can also use the 🎤 microphone to dictate." oninput="updateWC()"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+          <span style="font-size:11px;color:var(--muted);" id="wc-label">0 words</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              <button class="voice-btn idle" id="para-mic-btn" onclick="toggleParaMic()">🎤</button>
+              <span class="voice-status" id="para-mic-status"></span>
+            </div>
+          </div>
+        </div>
         <div class="btn-row">
           <select class="ctrl" id="para-mode">
             <option value="correct">Correct grammar only</option>
@@ -283,7 +327,10 @@
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <h3 style="margin:0;">Corrected Version</h3>
-          <button class="btn-secondary" style="padding:5px 10px;font-size:11px;" onclick="copyPara()">Copy</button>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-secondary" style="padding:5px 10px;font-size:11px;" id="para-speak-btn" onclick="speakPara()" title="Read aloud">🔊</button>
+            <button class="btn-secondary" style="padding:5px 10px;font-size:11px;" onclick="copyPara()">Copy</button>
+          </div>
         </div>
         <div class="output-box" id="para-out"><span class="output-placeholder">Corrected paragraph will appear here...</span></div>
       </div>
@@ -433,59 +480,85 @@
         <div class="story-lesson" id="m-story-lesson"></div>
       </div>
     </div>
-  </div>
-
-    </div>
 
     <!-- Timezone Sub -->
-    <div class="page-scroll" id="sub-timezone" style="display:none;">
-      <div class="card">
-        <h3>Time Zone Converter</h3>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px;">
-          <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Date & Time</div>
-            <input type="datetime-local" id="tz-datetime" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;outline:none;" />
-          </div>
-          <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">From Timezone</div>
-            <select id="tz-from" class="ctrl" style="width:100%;">
-              <option value="Asia/Kolkata">India (IST)</option>
-              <option value="UTC">UTC</option>
-              <option value="America/New_York">New York (EST)</option>
-              <option value="America/Los_Angeles">Los Angeles (PST)</option>
-              <option value="Europe/London">London (GMT)</option>
-              <option value="Europe/Paris">Paris (CET)</option>
-              <option value="Asia/Dubai">Dubai (GST)</option>
-              <option value="Asia/Singapore">Singapore (SGT)</option>
-              <option value="Asia/Tokyo">Tokyo (JST)</option>
-              <option value="Australia/Sydney">Sydney (AEST)</option>
-            </select>
-          </div>
-          <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">To Timezone</div>
-            <select id="tz-to" class="ctrl" style="width:100%;">
-              <option value="UTC">UTC</option>
-              <option value="Asia/Kolkata">India (IST)</option>
-              <option value="America/New_York">New York (EST)</option>
-              <option value="America/Los_Angeles">Los Angeles (PST)</option>
-              <option value="Europe/London">London (GMT)</option>
-              <option value="Europe/Paris">Paris (CET)</option>
-              <option value="Asia/Dubai">Dubai (GST)</option>
-              <option value="Asia/Singapore">Singapore (SGT)</option>
-              <option value="Asia/Tokyo">Tokyo (JST)</option>
-              <option value="Australia/Sydney">Sydney (AEST)</option>
-            </select>
-          </div>
+    <div id="sub-timezone" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;">
+
+      <!-- RESULT PANEL — pinned at top, always visible -->
+      <div style="background:var(--dark);padding:16px;flex-shrink:0;">
+        <div id="tz-result-top" style="text-align:center;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.45);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Converted Time</div>
+          <div id="tz-from-label" style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:2px;">— Select timezone —</div>
+          <div id="tz-from-time" style="font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.5px;margin-bottom:4px;">--:--</div>
+          <div id="tz-from-date" style="font-size:12px;color:rgba(255,255,255,0.55);margin-bottom:14px;"></div>
+          <div style="width:40px;height:1px;background:rgba(255,255,255,0.2);margin:0 auto 14px;"></div>
+          <div id="tz-to-label" style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:2px;">— Select timezone —</div>
+          <div id="tz-to-time" style="font-size:36px;font-weight:700;color:#fff;letter-spacing:-0.5px;margin-bottom:4px;">--:--</div>
+          <div id="tz-to-date" style="font-size:12px;color:rgba(255,255,255,0.55);"></div>
         </div>
-        <div class="btn-row">
-          <button class="btn-primary" onclick="convertTZ()">Convert Time</button>
-          <button class="btn-secondary" onclick="setNowTZ()">Use Now</button>
-        </div>
-        <div id="tz-result" class="output-box" style="margin-top:12px;display:none;"></div>
       </div>
-      <div class="card">
-        <h3>World Clock</h3>
-        <div id="world-clock" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+
+      <!-- CONTROLS + WORLD CLOCK — scrollable below -->
+      <div class="page-scroll" style="gap:10px;padding:12px;">
+
+        <!-- Converter controls -->
+        <div class="card" style="padding:12px;">
+          <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end;margin-bottom:10px;">
+            <div>
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:500;">FROM</div>
+              <select id="tz-from" onchange="convertTZ()" class="ctrl" style="width:100%;font-size:12px;padding:7px 8px;">
+                <option value="Asia/Kolkata">🇮🇳 India (IST)</option>
+                <option value="UTC">🌐 UTC</option>
+                <option value="America/New_York">🇺🇸 New York</option>
+                <option value="America/Los_Angeles">🇺🇸 Los Angeles</option>
+                <option value="America/Chicago">🇺🇸 Chicago</option>
+                <option value="Europe/London">🇬🇧 London</option>
+                <option value="Europe/Paris">🇫🇷 Paris</option>
+                <option value="Europe/Berlin">🇩🇪 Berlin</option>
+                <option value="Asia/Dubai">🇦🇪 Dubai</option>
+                <option value="Asia/Singapore">🇸🇬 Singapore</option>
+                <option value="Asia/Tokyo">🇯🇵 Tokyo</option>
+                <option value="Asia/Shanghai">🇨🇳 Shanghai</option>
+                <option value="Australia/Sydney">🇦🇺 Sydney</option>
+              </select>
+            </div>
+            <button onclick="swapTZ()" style="padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:16px;margin-bottom:0;">⇄</button>
+            <div>
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:500;">TO</div>
+              <select id="tz-to" onchange="convertTZ()" class="ctrl" style="width:100%;font-size:12px;padding:7px 8px;">
+                <option value="UTC">🌐 UTC</option>
+                <option value="Asia/Kolkata">🇮🇳 India (IST)</option>
+                <option value="America/New_York">🇺🇸 New York</option>
+                <option value="America/Los_Angeles">🇺🇸 Los Angeles</option>
+                <option value="America/Chicago">🇺🇸 Chicago</option>
+                <option value="Europe/London">🇬🇧 London</option>
+                <option value="Europe/Paris">🇫🇷 Paris</option>
+                <option value="Europe/Berlin">🇩🇪 Berlin</option>
+                <option value="Asia/Dubai">🇦🇪 Dubai</option>
+                <option value="Asia/Singapore">🇸🇬 Singapore</option>
+                <option value="Asia/Tokyo">🇯🇵 Tokyo</option>
+                <option value="Asia/Shanghai">🇨🇳 Shanghai</option>
+                <option value="Australia/Sydney">🇦🇺 Sydney</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="datetime-local" id="tz-datetime" onchange="convertTZ()" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;" />
+            <button class="btn-secondary" onclick="setNowTZ()" style="white-space:nowrap;font-size:12px;padding:8px 12px;">Now</button>
+          </div>
+        </div>
+
+        <!-- World Clock -->
+        <div class="card" style="padding:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div style="font-size:13px;font-weight:500;color:var(--dark);">🌍 World Clock</div>
+            <div id="wc-live-dot" style="display:flex;align-items:center;gap:5px;font-size:10px;color:#10b981;">
+              <span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;animation:bop 2s infinite;"></span>Live
+            </div>
+          </div>
+          <div id="world-clock" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -683,10 +756,11 @@
 
     <!-- Sub-tabs -->
     <div style="display:flex;border-bottom:1px solid var(--border);background:#fff;flex-shrink:0;overflow-x:auto;">
-      <button id="nt-all"   onclick="showNotesSub('all')"   style="padding:10px 14px;border:none;border-bottom:2px solid var(--dark);background:transparent;font-size:12px;font-weight:500;color:var(--dark);cursor:pointer;white-space:nowrap;">📋 All</button>
-      <button id="nt-quick" onclick="showNotesSub('quick')" style="padding:10px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">⚡ Quick</button>
-      <button id="nt-daily" onclick="showNotesSub('daily')" style="padding:10px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">📅 Daily</button>
-      <button id="nt-study" onclick="showNotesSub('study')" style="padding:10px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">📚 Study</button>
+      <button id="nt-all"     onclick="showNotesSub('all')"     style="padding:10px 14px;border:none;border-bottom:2px solid var(--dark);background:transparent;font-size:12px;font-weight:500;color:var(--dark);cursor:pointer;white-space:nowrap;">📋 All</button>
+      <button id="nt-quick"   onclick="showNotesSub('quick')"   style="padding:10px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">⚡ Quick</button>
+      <button id="nt-daily"   onclick="showNotesSub('daily')"   style="padding:10px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">📅 Daily</button>
+      <button id="nt-study"   onclick="showNotesSub('study')"   style="padding:10px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">📚 Study</button>
+      <button id="nt-private" onclick="openPrivateTab()"        style="padding:10px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-size:12px;color:#dc2626;cursor:pointer;white-space:nowrap;font-weight:500;">🔒 Private</button>
     </div>
 
     <!-- Toolbar: search + new note + download -->
@@ -699,13 +773,16 @@
     <div id="notes-stats" style="display:flex;gap:12px;padding:8px 14px;background:#fafaf7;border-bottom:1px solid var(--border);flex-shrink:0;font-size:11px;color:var(--muted);overflow-x:auto;white-space:nowrap;">
       <span id="stat-total">0 notes</span>
       <span>·</span>
-      <span id="stat-quick">⚡ 0 quick</span>
+      <span id="stat-quick">⚡ 0</span>
       <span>·</span>
-      <span id="stat-daily">📅 0 daily</span>
+      <span id="stat-daily">📅 0</span>
       <span>·</span>
-      <span id="stat-study">📚 0 study</span>
-      <span style="margin-left:auto;"><button onclick="downloadAllNotes()" style="border:none;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;">⬇ Download All</button></span>
-      <span><button onclick="downloadNotesJSON()" style="border:none;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;">💾 Backup JSON</button></span>
+      <span id="stat-study">📚 0</span>
+      <span>·</span>
+      <span id="stat-private" style="color:#dc2626;">🔒 0</span>
+      <span style="margin-left:auto;">
+        <button onclick="openDownloadSheet()" style="border:none;background:transparent;color:var(--dark);font-size:11px;cursor:pointer;font-weight:500;padding:2px 8px;border:1px solid var(--border);border-radius:6px;background:#fff;">⬇ Download</button>
+      </span>
     </div>
 
     <!-- Notes list -->
@@ -733,9 +810,10 @@
       <div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">NOTE TYPE</div>
         <div class="note-tag-sel">
-          <button class="note-tag-opt sel" id="ntype-quick" onclick="selectNoteType('quick',this)">⚡ Quick Note</button>
-          <button class="note-tag-opt" id="ntype-daily" onclick="selectNoteType('daily',this)">📅 Daily Journal</button>
-          <button class="note-tag-opt" id="ntype-study" onclick="selectNoteType('study',this)">📚 Study Note</button>
+          <button class="note-tag-opt sel" id="ntype-quick"   onclick="selectNoteType('quick',this)">⚡ Quick Note</button>
+          <button class="note-tag-opt"     id="ntype-daily"   onclick="selectNoteType('daily',this)">📅 Daily Journal</button>
+          <button class="note-tag-opt"     id="ntype-study"   onclick="selectNoteType('study',this)">📚 Study Note</button>
+          <button class="note-tag-opt"     id="ntype-private" onclick="selectNoteType('private',this)" style="color:#dc2626;border-color:#fca5a5;">🔒 Private</button>
         </div>
       </div>
 
@@ -795,15 +873,110 @@
     </div>
   </div>
 
+  <!-- DOWNLOAD SHEET OVERLAY -->
+  <div class="dl-overlay" id="dl-overlay" style="display:none;" onclick="if(event.target===this)closeDownloadSheet()">
+    <div class="dl-sheet">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="dl-title">⬇ Download Notes</div>
+        <button onclick="closeDownloadSheet()" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:#888;">×</button>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:-4px;">Choose what to download</p>
+
+      <!-- All notes -->
+      <div class="dl-option" onclick="downloadByType('all')">
+        <div class="dl-option-icon">📋</div>
+        <div>
+          <div class="dl-option-label">All Notes (.txt)</div>
+          <div class="dl-option-desc">Download every note as a readable text file</div>
+        </div>
+      </div>
+
+      <!-- By type -->
+      <div class="dl-option" onclick="downloadByType('quick')">
+        <div class="dl-option-icon">⚡</div>
+        <div>
+          <div class="dl-option-label">Quick Notes only (.txt)</div>
+          <div class="dl-option-desc">Only your quick one-liner notes</div>
+        </div>
+      </div>
+      <div class="dl-option" onclick="downloadByType('daily')">
+        <div class="dl-option-icon">📅</div>
+        <div>
+          <div class="dl-option-label">Daily Journal only (.txt)</div>
+          <div class="dl-option-desc">All your daily journal entries</div>
+        </div>
+      </div>
+      <div class="dl-option" onclick="downloadByType('study')">
+        <div class="dl-option-icon">📚</div>
+        <div>
+          <div class="dl-option-label">Study Notes only (.txt)</div>
+          <div class="dl-option-desc">Grammar rules, tense notes, vocabulary study</div>
+        </div>
+      </div>
+
+      <!-- Multiple select -->
+      <div style="background:#f5f5f0;border-radius:12px;padding:14px;">
+        <div style="font-size:12px;font-weight:600;color:var(--dark);margin-bottom:10px;">📦 Select Multiple Types</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="dlchk-quick" value="quick" style="width:16px;height:16px;"> ⚡ Quick</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="dlchk-daily" value="daily" style="width:16px;height:16px;"> 📅 Daily</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="checkbox" id="dlchk-study" value="study" style="width:16px;height:16px;"> 📚 Study</label>
+        </div>
+        <button onclick="downloadMultipleSelected()" style="width:100%;padding:10px;background:var(--dark);color:#fff;border:none;border-radius:9px;font-size:13px;cursor:pointer;font-family:inherit;">Download Selected</button>
+      </div>
+
+      <!-- JSON Backup -->
+      <div class="dl-option" onclick="downloadNotesJSON()" style="border-color:#c4b5fd;">
+        <div class="dl-option-icon">💾</div>
+        <div>
+          <div class="dl-option-label" style="color:#7c3aed;">Full Backup (.json)</div>
+          <div class="dl-option-desc">Complete backup of all notes — can restore later</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PRIVATE LOCK OVERLAY (Enter Password) -->
+  <div class="lock-overlay" id="private-lock-overlay" style="display:none;">
+    <div class="lock-card">
+      <div class="lock-icon">🔒</div>
+      <div class="lock-title">Private Notes</div>
+      <div class="lock-sub">Enter your password to access your private notes</div>
+      <input type="password" id="private-pass-inp" class="lock-inp" placeholder="••••••••" maxlength="20" onkeydown="if(event.key==='Enter')unlockPrivate()" />
+      <div id="private-lock-error" style="font-size:12px;color:#dc2626;display:none;">❌ Incorrect password. Try again.</div>
+      <button class="lock-btn" onclick="unlockPrivate()">🔓 Unlock</button>
+      <span class="lock-cancel" onclick="closePrivateLock()">Cancel</span>
+      <div style="margin-top:6px;padding-top:12px;border-top:1px solid var(--border);width:100%;">
+        <button onclick="showChangePasswordPrompt()" style="border:none;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit;">⚙ Change / Set Password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRIVATE SET PASSWORD OVERLAY -->
+  <div class="lock-overlay" id="private-setpass-overlay" style="display:none;">
+    <div class="lock-card">
+      <div class="lock-icon">🔑</div>
+      <div class="lock-title" id="setpass-title">Set Private Password</div>
+      <div class="lock-sub" id="setpass-sub">Choose a password to protect your private notes. Remember it — there is no recovery option.</div>
+      <input type="password" id="setpass-inp1" class="lock-inp" placeholder="New password" maxlength="20" />
+      <input type="password" id="setpass-inp2" class="lock-inp" placeholder="Confirm password" maxlength="20" onkeydown="if(event.key==='Enter')savePrivatePassword()" />
+      <div id="setpass-error" style="font-size:12px;color:#dc2626;display:none;"></div>
+      <button class="lock-btn" onclick="savePrivatePassword()">✅ Save Password</button>
+      <span class="lock-cancel" onclick="closeSetPassword()">Cancel</span>
+    </div>
+  </div>
+
 </div>
-<div id="bottomnav" style="overflow-x:auto;">
-  <button class="bnav-btn active" id="bn-chat" onclick="showPage('chat')"><span class="bi">💬</span>Chat</button>
-  <button class="bnav-btn" id="bn-para" onclick="showPage('para')"><span class="bi">✏️</span>Paragraph</button>
-  <button class="bnav-btn" id="bn-tense" onclick="showPage('tense')"><span class="bi">📝</span>Exercise</button>
-  <button class="bnav-btn" id="bn-email" onclick="showPage('email')"><span class="bi">✉️</span>Email</button>
-  <button class="bnav-btn" id="bn-translator" onclick="showPage('translator')"><span class="bi">🔄</span>Translate</button>
-  <button class="bnav-btn" id="bn-notes" onclick="showPage('notes')"><span class="bi">📋</span>Notes</button>
-  <button class="bnav-btn" id="bn-copilot" onclick="showPage('copilot')"><span class="bi">🔷</span>Copilot</button>
+
+<div id="bottomnav">
+  <button class="bnav-btn active" id="bn-chat"       onclick="showPage('chat')">      <span class="bi">💬</span>Chat</button>
+  <button class="bnav-btn"        id="bn-para"       onclick="showPage('para')">      <span class="bi">✏️</span>Paragraph</button>
+  <button class="bnav-btn"        id="bn-tense"      onclick="showPage('tense')">     <span class="bi">📝</span>Exercise</button>
+  <button class="bnav-btn"        id="bn-email"      onclick="showPage('email')">     <span class="bi">✉️</span>Email</button>
+  <button class="bnav-btn"        id="bn-translator" onclick="showPage('translator')"><span class="bi">🔄</span>Translate</button>
+  <button class="bnav-btn"        id="bn-notes"      onclick="showPage('notes')">     <span class="bi">📋</span>Notes</button>
+  <button class="bnav-btn"        id="bn-copilot"    onclick="showPage('copilot')">   <span class="bi">🔷</span>Copilot</button>
 </div>
 
 <script>
@@ -929,7 +1102,15 @@ Rules:
         btn.style.fontWeight = s === sub ? '500' : '400';
       }
     });
-    if (sub === 'timezone') updateWorldClock();
+    if (sub === 'timezone') {
+      setNowTZ();
+      updateWorldClock();
+      if (!window._wcInterval) {
+        window._wcInterval = setInterval(() => {
+          if (document.getElementById('sub-timezone')?.style.display !== 'none') updateWorldClock();
+        }, 1000);
+      }
+    }
   }
 
   function showTr(tab) {
@@ -1092,15 +1273,107 @@ Rules:
     btn.textContent = 'Generating...'; btn.disabled = true;
     document.getElementById('m-qs-area').style.display = 'none';
     document.getElementById('m-ans-area').style.display = 'none';
+
+    // Smart prompt — prepositions need different question style (choose correct preposition)
+    const isPreposition = mSelTense.toLowerCase().includes('preposition');
+    const userPrompt = isPreposition
+      ? `Generate 15 preposition exercises for: "${mSelTense}". Seed: ${Math.floor(Math.random()*100000)}. Return ONLY: {"tense":"${mSelTense}","questions":[{"no":1,"sentence":"She arrived ___ Monday morning.","hint":"in / on / at"}],"answers":[{"no":1,"answer":"on","explanation":"Use 'on' for specific days of the week."}]} with 15 items each. Use real daily-life sentences. Each hint must show 2-3 preposition choices.`
+      : `Generate 15 fill-in-the-blank sentences for: "${mSelTense}". Seed: ${Math.floor(Math.random()*100000)}. Return ONLY: {"tense":"${mSelTense}","questions":[{"no":1,"sentence":"She ___ (go) every day.","hint":"correct form"}],"answers":[{"no":1,"answer":"goes","explanation":"Third person singular needs -s."}]} with 15 items each. Unique daily-life sentences.`;
+
     try {
       const reply = await callGroq([
         {role:'system', content:'You are an English exercise generator. Return ONLY valid JSON, no markdown.'},
-        {role:'user', content:'Generate 15 fill-in-the-blank sentences for: "' + mSelTense + '". Seed: ' + Math.floor(Math.random()*100000) + '. Return ONLY: {"tense":"' + mSelTense + '","questions":[{"no":1,"sentence":"She ___ (go) every day.","hint":"correct form"}],"answers":[{"no":1,"answer":"goes","explanation":"Third person singular needs -s."}]} with 15 items each. Unique daily-life sentences.'}
+        {role:'user', content: userPrompt}
       ], 3000);
       mExData = JSON.parse(reply.replace(/```json|```/g,'').trim());
       mRenderExercise(mExData);
     } catch(e) { alert('Error: ' + e.message); }
     btn.textContent = 'Generate 15 Qs'; btn.disabled = false;
+  }
+
+  // ====== PARAGRAPH VOICE INPUT ======
+  let paraRecognition = null;
+  let paraListening = false;
+
+  function toggleParaMic() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice input is not supported on this browser. Please use Chrome or Safari.');
+      return;
+    }
+    if (paraListening) {
+      stopParaMic();
+    } else {
+      startParaMic();
+    }
+  }
+
+  function startParaMic() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    paraRecognition = new SR();
+    paraRecognition.continuous = true;
+    paraRecognition.interimResults = true;
+    paraRecognition.lang = 'en-IN';
+
+    const btn = document.getElementById('para-mic-btn');
+    const status = document.getElementById('para-mic-status');
+    const textarea = document.getElementById('para-in');
+    let existingText = textarea.value;
+    if (existingText && !existingText.endsWith(' ')) existingText += ' ';
+
+    paraRecognition.onstart = () => {
+      paraListening = true;
+      btn.className = 'voice-btn listening';
+      btn.textContent = '🔴';
+      status.textContent = 'Listening...';
+      status.className = 'voice-status active';
+    };
+
+    paraRecognition.onresult = (e) => {
+      let interim = '';
+      let final = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript + ' ';
+        else interim += e.results[i][0].transcript;
+      }
+      if (final) existingText += final;
+      textarea.value = existingText + interim;
+      updateWC();
+    };
+
+    paraRecognition.onerror = (e) => {
+      stopParaMic();
+      if (e.error !== 'aborted') status.textContent = 'Error: ' + e.error;
+    };
+
+    paraRecognition.onend = () => { if (paraListening) stopParaMic(); };
+    paraRecognition.start();
+  }
+
+  function stopParaMic() {
+    paraListening = false;
+    if (paraRecognition) { try { paraRecognition.stop(); } catch(e){} paraRecognition = null; }
+    const btn = document.getElementById('para-mic-btn');
+    const status = document.getElementById('para-mic-status');
+    btn.className = 'voice-btn idle';
+    btn.textContent = '🎤';
+    status.textContent = '';
+    status.className = 'voice-status';
+    updateWC();
+  }
+
+  function speakPara() {
+    const text = document.getElementById('para-out').innerText.trim();
+    if (!text || text === 'Corrected paragraph will appear here...') return;
+    if (window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); return; }
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = 'en-IN';
+    utt.rate = 0.9;
+    utt.pitch = 1;
+    const btn = document.getElementById('para-speak-btn');
+    utt.onstart = () => { btn.textContent = '⏹'; };
+    utt.onend = () => { btn.textContent = '🔊'; };
+    utt.onerror = () => { btn.textContent = '🔊'; };
+    window.speechSynthesis.speak(utt);
   }
 
   function mRenderExercise(data) {
@@ -1455,22 +1728,51 @@ Return ONLY this JSON:
     const now = new Date();
     const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0,16);
     document.getElementById('tz-datetime').value = local;
+    convertTZ();
+  }
+
+  function swapTZ() {
+    const fromEl = document.getElementById('tz-from');
+    const toEl   = document.getElementById('tz-to');
+    const tmp = fromEl.value; fromEl.value = toEl.value; toEl.value = tmp;
+    convertTZ();
   }
 
   function convertTZ() {
-    const dtVal = document.getElementById('tz-datetime').value;
+    const dtVal    = document.getElementById('tz-datetime').value;
     const fromZone = document.getElementById('tz-from').value;
-    const toZone = document.getElementById('tz-to').value;
-    const result = document.getElementById('tz-result');
-    if (!dtVal) { alert('Please select a date and time first.'); return; }
+    const toZone   = document.getElementById('tz-to').value;
+
+    // Get friendly label from select text
+    const fromSel = document.getElementById('tz-from');
+    const toSel   = document.getElementById('tz-to');
+    const fromName = fromSel.options[fromSel.selectedIndex]?.text || fromZone.split('/').pop().replace(/_/g,' ');
+    const toName   = toSel.options[toSel.selectedIndex]?.text   || toZone.split('/').pop().replace(/_/g,' ');
+
+    // Update labels always
+    document.getElementById('tz-from-label').textContent = fromName;
+    document.getElementById('tz-to-label').textContent   = toName;
+
+    if (!dtVal) return;
+
     try {
       const dt = new Date(dtVal);
-      const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:true };
-      const from = new Intl.DateTimeFormat('en-IN', {...opts, timeZone: fromZone}).format(dt);
-      const to = new Intl.DateTimeFormat('en-IN', {...opts, timeZone: toZone}).format(dt);
-      result.textContent = 'From (' + fromZone + '):\n' + from + '\n\nTo (' + toZone + '):\n' + to;
-      result.style.display = 'block';
-    } catch(e) { result.textContent = 'Error: ' + e.message; result.style.display = 'block'; }
+      const timeOpts = { hour:'2-digit', minute:'2-digit', hour12:true };
+      const dateOpts = { weekday:'short', day:'numeric', month:'short', year:'numeric' };
+
+      const fromTime = new Intl.DateTimeFormat('en-IN', {...timeOpts, timeZone:fromZone}).format(dt);
+      const fromDate = new Intl.DateTimeFormat('en-IN', {...dateOpts, timeZone:fromZone}).format(dt);
+      const toTime   = new Intl.DateTimeFormat('en-IN', {...timeOpts, timeZone:toZone}).format(dt);
+      const toDate   = new Intl.DateTimeFormat('en-IN', {...dateOpts, timeZone:toZone}).format(dt);
+
+      document.getElementById('tz-from-time').textContent = fromTime;
+      document.getElementById('tz-from-date').textContent = fromDate;
+      document.getElementById('tz-to-time').textContent   = toTime;
+      document.getElementById('tz-to-date').textContent   = toDate;
+    } catch(e) {
+      document.getElementById('tz-from-time').textContent = 'Error';
+      document.getElementById('tz-to-time').textContent   = 'Error';
+    }
   }
 
   const WORLD_CLOCK_ZONES = [
@@ -1487,13 +1789,13 @@ Return ONLY this JSON:
     if (!grid) return;
     const now = new Date();
     grid.innerHTML = WORLD_CLOCK_ZONES.map(z => {
-      const time = new Intl.DateTimeFormat('en-IN', {hour:'2-digit',minute:'2-digit',hour12:true,timeZone:z.zone}).format(now);
-      const date = new Intl.DateTimeFormat('en-IN', {day:'numeric',month:'short',timeZone:z.zone}).format(now);
-      return `<div style="background:#f9f9f7;border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
-        <div style="font-size:18px;margin-bottom:2px;">${z.flag}</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${z.name}</div>
-        <div style="font-size:16px;font-weight:600;color:var(--dark);">${time}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px;">${date}</div>
+      const time = new Intl.DateTimeFormat('en-IN', {hour:'2-digit', minute:'2-digit', hour12:true, timeZone:z.zone}).format(now);
+      const date = new Intl.DateTimeFormat('en-IN', {weekday:'short', day:'numeric', month:'short', timeZone:z.zone}).format(now);
+      return `<div style="background:#f9f9f7;border:1px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:3px;">${z.flag}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500;">${z.name}</div>
+        <div style="font-size:18px;font-weight:700;color:var(--dark);">${time}</div>
+        <div style="font-size:10px;color:#888;margin-top:3px;">${date}</div>
       </div>`;
     }).join('');
   }
@@ -1548,6 +1850,7 @@ Rules:
   let currentNoteTags = [];
   let currentNoteType = 'quick';
   let lastAIResult = '';
+  let privateUnlocked = false;
 
   function saveNotesToStorage() {
     localStorage.setItem('grammar_notes', JSON.stringify(notesData));
@@ -1569,13 +1872,96 @@ Rules:
     return d.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) + ', ' + time;
   }
 
+  // ---- PRIVATE TAB PASSWORD ----
+  function openPrivateTab() {
+    const hasPass = !!localStorage.getItem('grammar_private_pass');
+    if (!hasPass) {
+      // No password set yet — prompt to set one
+      document.getElementById('setpass-title').textContent = 'Set Private Password';
+      document.getElementById('setpass-sub').textContent = 'No password set yet. Choose a password to protect your private notes.';
+      document.getElementById('setpass-inp1').value = '';
+      document.getElementById('setpass-inp2').value = '';
+      document.getElementById('setpass-error').style.display = 'none';
+      document.getElementById('private-setpass-overlay').style.display = 'flex';
+      return;
+    }
+    if (privateUnlocked) {
+      // Already unlocked this session
+      showNotesSub('private');
+      return;
+    }
+    // Show lock screen
+    document.getElementById('private-pass-inp').value = '';
+    document.getElementById('private-lock-error').style.display = 'none';
+    document.getElementById('private-lock-overlay').style.display = 'flex';
+    setTimeout(() => document.getElementById('private-pass-inp').focus(), 200);
+  }
+
+  function unlockPrivate() {
+    const inp = document.getElementById('private-pass-inp').value;
+    const saved = localStorage.getItem('grammar_private_pass');
+    if (inp === saved) {
+      privateUnlocked = true;
+      document.getElementById('private-lock-overlay').style.display = 'none';
+      document.getElementById('private-pass-inp').value = '';
+      showNotesSub('private');
+    } else {
+      document.getElementById('private-lock-error').style.display = 'block';
+      document.getElementById('private-pass-inp').value = '';
+      document.getElementById('private-pass-inp').focus();
+    }
+  }
+
+  function closePrivateLock() {
+    document.getElementById('private-lock-overlay').style.display = 'none';
+    document.getElementById('private-pass-inp').value = '';
+    document.getElementById('private-lock-error').style.display = 'none';
+  }
+
+  function showChangePasswordPrompt() {
+    document.getElementById('private-lock-overlay').style.display = 'none';
+    document.getElementById('setpass-title').textContent = 'Change Password';
+    document.getElementById('setpass-sub').textContent = 'Enter a new password for your private notes.';
+    document.getElementById('setpass-inp1').value = '';
+    document.getElementById('setpass-inp2').value = '';
+    document.getElementById('setpass-error').style.display = 'none';
+    document.getElementById('private-setpass-overlay').style.display = 'flex';
+    setTimeout(() => document.getElementById('setpass-inp1').focus(), 200);
+  }
+
+  function savePrivatePassword() {
+    const p1 = document.getElementById('setpass-inp1').value;
+    const p2 = document.getElementById('setpass-inp2').value;
+    const errEl = document.getElementById('setpass-error');
+    if (!p1 || p1.length < 4) { errEl.textContent = '⚠ Password must be at least 4 characters.'; errEl.style.display = 'block'; return; }
+    if (p1 !== p2) { errEl.textContent = '⚠ Passwords do not match. Try again.'; errEl.style.display = 'block'; return; }
+    localStorage.setItem('grammar_private_pass', p1);
+    privateUnlocked = true;
+    document.getElementById('private-setpass-overlay').style.display = 'none';
+    showNotesSub('private');
+  }
+
+  function closeSetPassword() {
+    document.getElementById('private-setpass-overlay').style.display = 'none';
+  }
+
+  // Lock private tab when switching away
+  function lockPrivateOnLeave(sub) {
+    if (currentNotesSub === 'private' && sub !== 'private') {
+      privateUnlocked = false;
+    }
+  }
+
+  // ---- NOTES SUB TABS ----
   function showNotesSub(sub) {
+    lockPrivateOnLeave(sub);
     currentNotesSub = sub;
-    ['all','quick','daily','study'].forEach(s => {
+    ['all','quick','daily','study','private'].forEach(s => {
       const btn = document.getElementById('nt-' + s);
       if (!btn) return;
-      btn.style.borderBottom = s === sub ? '2px solid var(--dark)' : '2px solid transparent';
-      btn.style.color = s === sub ? 'var(--dark)' : 'var(--muted)';
+      const isPrivate = s === 'private';
+      btn.style.borderBottom = s === sub ? '2px solid ' + (isPrivate ? '#dc2626' : 'var(--dark)') : '2px solid transparent';
+      btn.style.color = s === sub ? (isPrivate ? '#dc2626' : 'var(--dark)') : (isPrivate ? '#dc2626' : 'var(--muted)');
       btn.style.fontWeight = s === sub ? '500' : '400';
     });
     renderNotes();
@@ -1584,12 +1970,16 @@ Rules:
   function renderNotes(filterText) {
     const list = document.getElementById('notes-list');
     const empty = document.getElementById('notes-empty-msg');
+
+    // In "All" tab, never show private notes — private only shows in Private tab
     let notes = [...notesData].sort((a, b) => b.updatedAt - a.updatedAt);
+    if (currentNotesSub === 'all') {
+      notes = notes.filter(n => n.type !== 'private');
+    } else {
+      notes = notes.filter(n => n.type === currentNotesSub);
+    }
 
-    // Filter by sub-tab type
-    if (currentNotesSub !== 'all') notes = notes.filter(n => n.type === currentNotesSub);
-
-    // Filter by search text
+    // Filter by search
     if (filterText && filterText.trim()) {
       const q = filterText.toLowerCase();
       notes = notes.filter(n =>
@@ -1603,16 +1993,19 @@ Rules:
 
     if (!notes.length) {
       empty.style.display = 'block';
+      empty.innerHTML = currentNotesSub === 'private'
+        ? '<div style="font-size:40px;margin-bottom:12px;">🔒</div><div style="font-weight:500;margin-bottom:6px;">No private notes yet</div><div style="font-size:12px;">Tap <strong>+</strong> and choose 🔒 Private type</div>'
+        : '<div style="font-size:40px;margin-bottom:12px;">📝</div><div style="font-weight:500;margin-bottom:6px;">No notes yet</div><div style="font-size:12px;">Tap <strong>+</strong> to create your first note</div>';
       list.innerHTML = '';
       return;
     }
     empty.style.display = 'none';
 
-    // Group by date for Daily notes, flat for others
     const typeConfig = {
-      quick: {badge:'badge-quick', label:'⚡ Quick', cls:'quick'},
-      daily: {badge:'badge-daily', label:'📅 Daily', cls:'daily'},
-      study: {badge:'badge-study', label:'📚 Study', cls:'study'},
+      quick:   {badge:'badge-quick',   label:'⚡ Quick',   cls:'quick'},
+      daily:   {badge:'badge-daily',   label:'📅 Daily',   cls:'daily'},
+      study:   {badge:'badge-study',   label:'📚 Study',   cls:'study'},
+      private: {badge:'badge-private', label:'🔒 Private', cls:'private'},
     };
 
     list.innerHTML = notes.map(n => {
@@ -1631,7 +2024,7 @@ Rules:
             ${isLong ? `<button class="note-btn" onclick="toggleNoteExpand('${n.id}',this)">▼ Read more</button>` : ''}
             <button class="note-btn" onclick="openNoteEditor('${n.id}')">✏️ Edit</button>
             <button class="note-btn" onclick="copyNoteText('${n.id}')">Copy</button>
-            <button class="note-btn" onclick="sendNoteToChat('${n.id}')">💬 To Chat</button>
+            ${n.type !== 'private' ? `<button class="note-btn" onclick="sendNoteToChat('${n.id}')">💬 Chat</button>` : ''}
             <button class="note-btn danger" onclick="deleteNote('${n.id}')">🗑</button>
           </div>
         </div>`;
@@ -1650,14 +2043,16 @@ Rules:
   }
 
   function updateNotesStats() {
-    const total = notesData.length;
+    const total = notesData.filter(n => n.type !== 'private').length;
     const quick = notesData.filter(n => n.type === 'quick').length;
     const daily = notesData.filter(n => n.type === 'daily').length;
     const study = notesData.filter(n => n.type === 'study').length;
+    const priv  = notesData.filter(n => n.type === 'private').length;
     document.getElementById('stat-total').textContent = total + ' note' + (total !== 1 ? 's' : '');
-    document.getElementById('stat-quick').textContent = '⚡ ' + quick + ' quick';
-    document.getElementById('stat-daily').textContent = '📅 ' + daily + ' daily';
-    document.getElementById('stat-study').textContent = '📚 ' + study + ' study';
+    document.getElementById('stat-quick').textContent = '⚡ ' + quick;
+    document.getElementById('stat-daily').textContent = '📅 ' + daily;
+    document.getElementById('stat-study').textContent = '📚 ' + study;
+    document.getElementById('stat-private').textContent = '🔒 ' + priv;
   }
 
   function searchNotes() {
@@ -1670,24 +2065,21 @@ Rules:
     currentNoteTags = [];
     currentNoteType = 'quick';
 
-    // Reset editor
     document.getElementById('note-title-inp').value = '';
     document.getElementById('note-content-inp').value = '';
     document.getElementById('note-char-count').textContent = '0 words';
     document.getElementById('note-ai-result').style.display = 'none';
     document.getElementById('note-ai-loading').style.display = 'none';
 
-    // Reset type buttons
     document.querySelectorAll('.note-tag-opt[id^="ntype-"]').forEach(b => b.classList.remove('sel'));
     document.getElementById('ntype-quick').classList.add('sel');
-
-    // Reset tag buttons
     document.querySelectorAll('#tag-options .note-tag-opt').forEach(b => b.classList.remove('sel'));
 
     if (id) {
-      // Edit existing
       const note = notesData.find(n => n.id === id);
       if (!note) return;
+      // If editing private note, ensure unlocked
+      if (note.type === 'private' && !privateUnlocked) { alert('Please unlock Private tab first.'); return; }
       document.getElementById('editor-title-label').textContent = 'Edit Note';
       document.getElementById('delete-note-btn').style.display = 'inline-block';
       document.getElementById('note-title-inp').value = note.title || '';
@@ -1695,20 +2087,21 @@ Rules:
       currentNoteType = note.type || 'quick';
       currentNoteTags = [...(note.tags || [])];
 
-      // Set type button
       document.querySelectorAll('.note-tag-opt[id^="ntype-"]').forEach(b => b.classList.remove('sel'));
       const typeBtn = document.getElementById('ntype-' + currentNoteType);
       if (typeBtn) typeBtn.classList.add('sel');
 
-      // Set tag buttons
       document.querySelectorAll('#tag-options .note-tag-opt').forEach(b => {
-        const tag = b.textContent.trim();
-        if (currentNoteTags.includes(tag)) b.classList.add('sel');
+        if (currentNoteTags.includes(b.textContent.trim())) b.classList.add('sel');
       });
-
       updateNoteWordCount();
     } else {
-      // New note
+      // New note — pre-select Private if in private tab
+      if (currentNotesSub === 'private') {
+        currentNoteType = 'private';
+        document.querySelectorAll('.note-tag-opt[id^="ntype-"]').forEach(b => b.classList.remove('sel'));
+        document.getElementById('ntype-private').classList.add('sel');
+      }
       document.getElementById('editor-title-label').textContent = 'New Note';
       document.getElementById('delete-note-btn').style.display = 'none';
     }
@@ -1742,8 +2135,7 @@ Rules:
   function updateNoteWordCount() {
     const t = document.getElementById('note-content-inp').value.trim();
     const words = t ? t.split(/\s+/).length : 0;
-    const chars = t.length;
-    document.getElementById('note-char-count').textContent = words + ' words · ' + chars + ' chars';
+    document.getElementById('note-char-count').textContent = words + ' words · ' + t.length + ' chars';
   }
 
   document.getElementById('note-content-inp').addEventListener('input', updateNoteWordCount);
@@ -1755,16 +2147,11 @@ Rules:
 
     const now = Date.now();
     if (currentNoteId) {
-      // Update existing
       const idx = notesData.findIndex(n => n.id === currentNoteId);
-      if (idx !== -1) {
-        notesData[idx] = { ...notesData[idx], title, content, type: currentNoteType, tags: currentNoteTags, updatedAt: now };
-      }
+      if (idx !== -1) notesData[idx] = { ...notesData[idx], title, content, type: currentNoteType, tags: currentNoteTags, updatedAt: now };
     } else {
-      // New note
       notesData.unshift({ id: getNoteId(), title, content, type: currentNoteType, tags: currentNoteTags, createdAt: now, updatedAt: now });
     }
-
     saveNotesToStorage();
     closeNoteEditor();
     renderNotes(document.getElementById('notes-search').value);
@@ -1789,16 +2176,14 @@ Rules:
   function copyNoteText(id) {
     const note = notesData.find(n => n.id === id);
     if (!note) return;
-    const text = (note.title ? note.title + '\n\n' : '') + note.content;
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText((note.title ? note.title + '\n\n' : '') + note.content);
   }
 
   function sendNoteToChat(id) {
     const note = notesData.find(n => n.id === id);
-    if (!note) return;
-    const text = (note.title ? note.title + '\n\n' : '') + note.content;
+    if (!note || note.type === 'private') return;
     showPage('chat');
-    document.getElementById('chat-inp').value = 'Please check my English and improve this text:\n\n' + text;
+    document.getElementById('chat-inp').value = 'Please check my English and improve this text:\n\n' + (note.title ? note.title + '\n\n' : '') + note.content;
   }
 
   // ---- AI NOTE ACTIONS ----
@@ -1808,28 +2193,22 @@ Rules:
     if (!apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Please set at least one API key — tap 🔑 Key in the top bar.'); return; }
 
     const prompts = {
-      improve: { label: '✨ Improved English', sys: 'You are an expert English editor.', user: 'Improve the English grammar, clarity, and flow of this text. Keep the same meaning. Show only the improved version:\n\n' + content },
-      summarise: { label: '📝 Summary', sys: 'You are a concise summariser.', user: 'Summarise this text into 3-5 clear bullet points. Be brief and informative:\n\n' + content },
-      translate: { label: '🇮🇳 Hindi Translation', sys: 'You are a Hindi-English translator.', user: 'Translate this English text into simple, natural Hindi:\n\n' + content },
-      explain: { label: '💡 Explanation', sys: 'You are a helpful teacher.', user: 'Explain this text in very simple English, as if explaining to a beginner. Use short sentences:\n\n' + content },
+      improve:   { label:'✨ Improved English', sys:'You are an expert English editor.', user:'Improve the English grammar, clarity, and flow of this text. Keep the same meaning. Show only the improved version:\n\n' + content },
+      summarise: { label:'📝 Summary',          sys:'You are a concise summariser.',     user:'Summarise this text into 3-5 clear bullet points. Be brief and informative:\n\n' + content },
+      translate: { label:'🇮🇳 Hindi Translation', sys:'You are a Hindi-English translator.', user:'Translate this English text into simple, natural Hindi:\n\n' + content },
+      explain:   { label:'💡 Explanation',       sys:'You are a helpful teacher.',        user:'Explain this text in very simple English, as if explaining to a beginner. Use short sentences:\n\n' + content },
     };
 
     const p = prompts[action];
     document.getElementById('note-ai-loading').style.display = 'block';
     document.getElementById('note-ai-result').style.display = 'none';
-
     try {
-      const reply = await callGroq([
-        { role: 'system', content: p.sys },
-        { role: 'user', content: p.user }
-      ], 1500);
+      const reply = await callGroq([{role:'system',content:p.sys},{role:'user',content:p.user}], 1500);
       lastAIResult = reply;
       document.getElementById('note-ai-label').textContent = p.label;
       document.getElementById('note-ai-text').textContent = reply;
       document.getElementById('note-ai-result').style.display = 'block';
-    } catch(e) {
-      alert('AI Error: ' + e.message);
-    }
+    } catch(e) { alert('AI Error: ' + e.message); }
     document.getElementById('note-ai-loading').style.display = 'none';
   }
 
@@ -1840,32 +2219,74 @@ Rules:
     document.getElementById('note-ai-result').style.display = 'none';
   }
 
-  // ---- DOWNLOAD ----
-  function downloadAllNotes() {
-    if (!notesData.length) { alert('No notes to download.'); return; }
-    const sorted = [...notesData].sort((a,b) => b.updatedAt - a.updatedAt);
+  // ---- DYNAMIC DOWNLOAD SHEET ----
+  function openDownloadSheet() {
+    // Reset checkboxes
+    ['quick','daily','study'].forEach(t => {
+      const el = document.getElementById('dlchk-' + t);
+      if (el) el.checked = false;
+    });
+    document.getElementById('dl-overlay').style.display = 'flex';
+  }
+
+  function closeDownloadSheet() {
+    document.getElementById('dl-overlay').style.display = 'none';
+  }
+
+  function buildNotesTxt(notes, label) {
+    if (!notes.length) { alert('No notes found for this selection.'); return null; }
+    const typeLabels = { quick:'⚡ QUICK NOTE', daily:'📅 DAILY JOURNAL', study:'📚 STUDY NOTE', private:'🔒 PRIVATE NOTE' };
     let txt = 'MY NOTES — Grammar AI Agent\n';
     txt += '='.repeat(50) + '\n';
+    txt += 'Filter: ' + label + '\n';
     txt += 'Exported: ' + new Date().toLocaleString('en-IN') + '\n';
-    txt += 'Total: ' + notesData.length + ' notes\n';
+    txt += 'Total: ' + notes.length + ' note' + (notes.length !== 1 ? 's' : '') + '\n';
     txt += '='.repeat(50) + '\n\n';
-
-    const typeLabels = { quick:'⚡ QUICK NOTE', daily:'📅 DAILY JOURNAL', study:'📚 STUDY NOTE' };
-    sorted.forEach((n, i) => {
+    notes.forEach((n, i) => {
       txt += (i+1) + '. ' + (typeLabels[n.type]||'NOTE') + '\n';
       txt += 'Date: ' + formatNoteDate(n.updatedAt) + '\n';
       if (n.title) txt += 'Title: ' + n.title + '\n';
       if (n.tags && n.tags.length) txt += 'Tags: ' + n.tags.join(', ') + '\n';
-      txt += '-'.repeat(30) + '\n';
-      txt += n.content + '\n';
-      txt += '\n' + '='.repeat(50) + '\n\n';
+      txt += '-'.repeat(30) + '\n' + n.content + '\n\n' + '='.repeat(50) + '\n\n';
     });
-    dlTxt(txt, 'my-notes-' + new Date().toLocaleDateString('en-IN').replace(/\//g,'-') + '.txt');
+    return txt;
+  }
+
+  function downloadByType(type) {
+    closeDownloadSheet();
+    const sorted = [...notesData].sort((a,b) => b.updatedAt - a.updatedAt);
+    const filtered = type === 'all'
+      ? sorted.filter(n => n.type !== 'private')   // All never includes private
+      : sorted.filter(n => n.type === type);
+
+    // Private download requires unlock
+    if (type === 'private' && !privateUnlocked) {
+      alert('Please unlock the Private tab first before downloading private notes.');
+      return;
+    }
+
+    const labels = { all:'All Notes', quick:'Quick Notes', daily:'Daily Journal', study:'Study Notes', private:'Private Notes' };
+    const txt = buildNotesTxt(filtered, labels[type] || type);
+    if (txt) dlTxt(txt, 'notes-' + type + '-' + new Date().toLocaleDateString('en-IN').replace(/\//g,'-') + '.txt');
+  }
+
+  function downloadMultipleSelected() {
+    const types = ['quick','daily','study'].filter(t => document.getElementById('dlchk-' + t)?.checked);
+    if (!types.length) { alert('Please select at least one type.'); return; }
+    closeDownloadSheet();
+    const sorted = [...notesData].sort((a,b) => b.updatedAt - a.updatedAt);
+    const filtered = sorted.filter(n => types.includes(n.type));
+    const label = types.map(t => ({quick:'Quick', daily:'Daily', study:'Study'}[t])).join(' + ');
+    const txt = buildNotesTxt(filtered, label);
+    if (txt) dlTxt(txt, 'notes-selected-' + new Date().toLocaleDateString('en-IN').replace(/\//g,'-') + '.txt');
   }
 
   function downloadNotesJSON() {
-    if (!notesData.length) { alert('No notes to backup.'); return; }
-    const json = JSON.stringify(notesData, null, 2);
+    closeDownloadSheet();
+    // JSON backup excludes private notes for safety — private stays local
+    const exportData = notesData.filter(n => n.type !== 'private');
+    if (!exportData.length) { alert('No notes to backup (private notes are excluded from JSON backup for security).'); return; }
+    const json = JSON.stringify(exportData, null, 2);
     const blob = new Blob([json], {type:'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
