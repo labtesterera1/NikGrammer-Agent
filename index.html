@@ -280,21 +280,30 @@
 </head>
 <body>
 
-<!-- SETUP SCREEN -->
+<!-- SETUP SCREEN — Worker-first welcome -->
 <div id="setup">
   <div class="setup-card" style="max-height:90vh;max-height:90dvh;overflow-y:auto;">
-    <h2>🔑 Setup AI Keys</h2>
-    <p>Add one or more free AI keys. The app will auto-rotate between them when one is rate limited.</p>
-    <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Groq Key <span style="color:#aaa;font-weight:400;">(console.groq.com)</span></label>
-    <input type="password" id="api-inp" placeholder="gsk_..." />
-    <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Cerebras Key <span style="color:#aaa;font-weight:400;">(cloud.cerebras.ai)</span></label>
-    <input type="password" id="api-cerebras-inp" placeholder="csk_..." />
-    <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Gemini Key <span style="color:#aaa;font-weight:400;">(aistudio.google.com/apikey)</span></label>
-    <input type="password" id="api-gemini-inp" placeholder="AIza..." />
-    <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Mistral Key <span style="color:#aaa;font-weight:400;">(console.mistral.ai)</span></label>
-    <input type="password" id="api-mistral-inp" placeholder="..." />
-    <button onclick="saveKey()">Save & Start</button>
-    <p class="setup-note">Keys stored only on your device · At least 1 key required</p>
+    <div style="text-align:center;font-size:48px;margin-bottom:8px;">🎓</div>
+    <h2 style="text-align:center;">Welcome to Grammar AI</h2>
+    <p style="text-align:center;">Set up your Cloudflare Worker URL to get started. The Worker holds your API keys server-side — no keys on your device.</p>
+    <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Cloudflare Worker URL</label>
+    <input type="url" id="setup-worker-inp" placeholder="https://your-worker.workers.dev" style="margin-bottom:12px;" />
+    <button onclick="setupSaveWorker()" style="background:linear-gradient(135deg,#10b981,#059669);">☁️ Connect Worker</button>
+    <details style="margin-top:14px;">
+      <summary style="font-size:12px;color:#64748b;cursor:pointer;text-align:center;">Don't have a Worker yet? Use direct API keys instead</summary>
+      <div style="padding-top:12px;">
+        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Groq Key <span style="color:#aaa;font-weight:400;">(console.groq.com)</span></label>
+        <input type="password" id="api-inp" placeholder="gsk_..." />
+        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Cerebras Key <span style="color:#aaa;font-weight:400;">(cloud.cerebras.ai)</span></label>
+        <input type="password" id="api-cerebras-inp" placeholder="csk_..." />
+        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Gemini Key <span style="color:#aaa;font-weight:400;">(aistudio.google.com/apikey)</span></label>
+        <input type="password" id="api-gemini-inp" placeholder="AIza..." />
+        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Mistral Key <span style="color:#aaa;font-weight:400;">(console.mistral.ai)</span></label>
+        <input type="password" id="api-mistral-inp" placeholder="..." />
+        <button onclick="saveKey()" style="background:#1e293b;">Save Keys & Start</button>
+      </div>
+    </details>
+    <p class="setup-note" style="margin-top:10px;">You can change these later in Settings ⚙️</p>
   </div>
 </div>
 
@@ -1230,7 +1239,7 @@ Rules:
   ];
 
   // ====== INIT ======
-  if (apiKey || cerebrasKey || geminiKey || mistralKey) {
+  if (workerUrl || apiKey || cerebrasKey || geminiKey || mistralKey) {
     document.getElementById('setup').style.display = 'none';
     addMsg('bot', 'Namaste Nik! 👋\n\nI am your Grammar AI Agent. Ask me anything in English or Hindi!\n\nUse the bottom tabs — Chat, Paragraph, Exercise, Email, Translate, Notes, Copilot.');
   }
@@ -1239,6 +1248,17 @@ Rules:
   setNowTZ();
 
   // ====== SETUP ======
+  function setupSaveWorker() {
+    const url = (document.getElementById('setup-worker-inp').value || '').trim().replace(/\/$/, '');
+    if (!url) { alert('Please enter your Cloudflare Worker URL'); return; }
+    if (!url.startsWith('https://')) { alert('Worker URL must start with https://'); return; }
+    workerUrl = url;
+    localStorage.setItem('grammar_worker_url', url);
+    updateTopbarSub();
+    document.getElementById('setup').style.display = 'none';
+    addMsg('bot', 'Namaste Nik! 👋\n\n☁️ Worker connected! I am your Grammar AI Agent. Ask me anything in English or Hindi!\n\nUse the bottom tabs — Chat, Paragraph, Exercise, Email, Translate, Notes, Settings.');
+  }
+
   function saveKey() {
     const k = document.getElementById('api-inp').value.trim();
     const kC = document.getElementById('api-cerebras-inp').value.trim();
@@ -1268,44 +1288,8 @@ Rules:
   }
 
   function changeKey() {
-    // Show a settings overlay for all keys
-    const overlay = document.createElement('div');
-    overlay.id = 'key-settings-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;';
-    overlay.innerHTML = `
-      <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:380px;max-height:90vh;max-height:90dvh;overflow-y:auto;">
-        <h2 style="font-size:17px;font-weight:600;margin-bottom:12px;">🔑 Manage API Keys</h2>
-        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Groq <span style="color:#aaa;font-weight:400;">(console.groq.com)</span></label>
-        <input id="ks-groq" type="password" value="${apiKey}" placeholder="gsk_..." style="width:100%;padding:9px 12px;border:1px solid #e8e8e4;border-radius:8px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;"/>
-        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Cerebras <span style="color:#aaa;font-weight:400;">(cloud.cerebras.ai)</span></label>
-        <input id="ks-cerebras" type="password" value="${cerebrasKey}" placeholder="csk_..." style="width:100%;padding:9px 12px;border:1px solid #e8e8e4;border-radius:8px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;"/>
-        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Gemini <span style="color:#aaa;font-weight:400;">(aistudio.google.com)</span></label>
-        <input id="ks-gemini" type="password" value="${geminiKey}" placeholder="AIza..." style="width:100%;padding:9px 12px;border:1px solid #e8e8e4;border-radius:8px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;"/>
-        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Mistral <span style="color:#aaa;font-weight:400;">(console.mistral.ai)</span></label>
-        <input id="ks-mistral" type="password" value="${mistralKey}" placeholder="..." style="width:100%;padding:9px 12px;border:1px solid #e8e8e4;border-radius:8px;font-size:13px;margin-bottom:12px;outline:none;font-family:inherit;"/>
-        <button onclick="saveKeySettings()" style="width:100%;padding:11px;background:#1a1a2e;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;margin-bottom:8px;">Save Keys</button>
-        <button onclick="document.getElementById('key-settings-overlay').remove()" style="width:100%;padding:11px;background:transparent;color:#555;border:1px solid #e8e8e4;border-radius:8px;font-size:14px;cursor:pointer;">Cancel</button>
-        <p style="font-size:11px;color:#aaa;text-align:center;margin-top:8px;">Keys stored only on your device</p>
-      </div>`;
-    document.body.appendChild(overlay);
-  }
-
-  function saveKeySettings() {
-    const k = document.getElementById('ks-groq').value.trim();
-    const kC = document.getElementById('ks-cerebras').value.trim();
-    const kG = document.getElementById('ks-gemini').value.trim();
-    const kM = document.getElementById('ks-mistral').value.trim();
-    if (k) { apiKey = k; localStorage.setItem('grammar_key', k); }
-    else { apiKey = ''; localStorage.removeItem('grammar_key'); }
-    if (kC) { cerebrasKey = kC; localStorage.setItem('grammar_cerebras_key', kC); }
-    else { cerebrasKey = ''; localStorage.removeItem('grammar_cerebras_key'); }
-    if (kG) { geminiKey = kG; localStorage.setItem('grammar_gemini_key', kG); }
-    else { geminiKey = ''; localStorage.removeItem('grammar_gemini_key'); }
-    if (kM) { mistralKey = kM; localStorage.setItem('grammar_mistral_key', kM); }
-    else { mistralKey = ''; localStorage.removeItem('grammar_mistral_key'); }
-    updateTopbarSub();
-    document.getElementById('key-settings-overlay').remove();
-    alert('✅ Keys updated successfully!');
+    // Legacy alias — redirect to Settings page
+    showPage('settings');
   }
 
   // ====== NAVIGATION ======
@@ -1501,7 +1485,7 @@ Rules:
   async function sendMsg() {
     const inp = document.getElementById('chat-inp');
     const text = inp.value.trim();
-    if (!text || (!apiKey && !cerebrasKey && !geminiKey && !mistralKey)) return;
+    if (!text || (!workerUrl && !apiKey && !cerebrasKey && !geminiKey && !mistralKey)) return;
     inp.value = ''; inp.style.height = 'auto';
     document.getElementById('send-btn').disabled = true;
     addMsg('user', text);
@@ -1545,8 +1529,8 @@ Rules:
 
   async function correctPara() {
     const text = document.getElementById('para-in').value.trim();
-    const noKey = !apiKey && !cerebrasKey && !geminiKey && !mistralKey;
-    if (!text || noKey) { alert(noKey ? 'Please set at least one API key — tap 🔑 Key in the top bar.' : 'Enter a paragraph.'); return; }
+    const noKey = !workerUrl && !apiKey && !cerebrasKey && !geminiKey && !mistralKey;
+    if (!text || noKey) { alert(noKey ? 'Configure a Worker URL or API keys in Settings ⚙️' : 'Enter a paragraph.'); return; }
     const mode = document.getElementById('para-mode').value;
     const out = document.getElementById('para-out');
     out.textContent = 'Correcting...';
@@ -1588,7 +1572,7 @@ Rules:
   }
 
   async function mGenExercise() {
-    if (!mSelTense || (!apiKey && !cerebrasKey && !geminiKey && !mistralKey)) return;
+    if (!mSelTense || (!workerUrl && !apiKey && !cerebrasKey && !geminiKey && !mistralKey)) return;
     const btn = document.getElementById('m-gen-btn');
     btn.textContent = 'Generating...'; btn.disabled = true;
     document.getElementById('m-qs-area').style.display = 'none';
@@ -1727,7 +1711,7 @@ Rules:
 
   // ====== FLASHCARDS MOBILE ======
   async function mGenFlashCards() {
-    if (!apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Please set at least one API key — tap 🔑 Key in the top bar.'); return; }
+    if (!workerUrl && !apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Configure a Worker URL or API keys in Settings ⚙️'); return; }
     const topic = document.getElementById('m-fc-topic').value;
     document.getElementById('m-fc-loading').style.display = 'block';
     document.getElementById('m-fc-area').style.display = 'none';
@@ -1846,7 +1830,7 @@ Rules:
 
   // ====== VOCAB MOBILE ======
   async function mGenVocab() {
-    if (!apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Please set at least one API key — tap 🔑 Key in the top bar.'); return; }
+    if (!workerUrl && !apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Configure a Worker URL or API keys in Settings ⚙️'); return; }
     const level = document.getElementById('m-vocab-level').value;
     document.getElementById('m-vocab-loading').style.display = 'block';
     document.getElementById('m-vocab-list').innerHTML = '';
@@ -1883,7 +1867,7 @@ Rules:
 
   // ====== STORY MOBILE ======
   async function mGenStory() {
-    if (!apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Please set at least one API key — tap 🔑 Key in the top bar.'); return; }
+    if (!workerUrl && !apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Configure a Worker URL or API keys in Settings ⚙️'); return; }
     const topic = document.getElementById('m-story-topic').value;
     document.getElementById('m-story-loading').style.display = 'block';
     document.getElementById('m-story-card').style.display = 'none';
@@ -1920,7 +1904,7 @@ Rules:
   async function translateEN() {
     const text = document.getElementById('tr-in').value.trim();
     const out = document.getElementById('tr-out');
-    if (!text || (!apiKey && !cerebrasKey && !geminiKey && !mistralKey)) { alert(!apiKey && !cerebrasKey && !geminiKey && !mistralKey ? 'Please set at least one API key.' : 'Enter text.'); return; }
+    if (!text || (!workerUrl && !apiKey && !cerebrasKey && !geminiKey && !mistralKey)) { alert(!workerUrl && !apiKey && !cerebrasKey && !geminiKey && !mistralKey ? 'Please set at least one API key.' : 'Enter text.'); return; }
     out.textContent = 'Translating...';
     const mode = document.getElementById('tr-mode').value;
     const modes = {
@@ -1940,7 +1924,7 @@ Rules:
   async function translateHI() {
     const text = document.getElementById('hi2en-in').value.trim();
     const out = document.getElementById('hi2en-out');
-    if (!text || (!apiKey && !cerebrasKey && !geminiKey && !mistralKey)) { alert(!apiKey && !cerebrasKey && !geminiKey && !mistralKey ? 'Please set at least one API key.' : 'Enter Hindi text.'); return; }
+    if (!text || (!workerUrl && !apiKey && !cerebrasKey && !geminiKey && !mistralKey)) { alert(!workerUrl && !apiKey && !cerebrasKey && !geminiKey && !mistralKey ? 'Please set at least one API key.' : 'Enter Hindi text.'); return; }
     out.textContent = 'Translating...';
     const mode = document.getElementById('hi2en-mode').value;
     const modes = {
@@ -2002,7 +1986,7 @@ Rules:
     const subject = document.getElementById('email-subject-in').value.trim();
     const body = document.getElementById('email-body-in').value.trim();
     if (!body) { alert('Please enter your email content.'); return; }
-    if (!apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Please set at least one API key — tap 🔑 Key in the top bar.'); return; }
+    if (!workerUrl && !apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Configure a Worker URL or API keys in Settings ⚙️'); return; }
 
     document.getElementById('email-loading').style.display = 'block';
     document.getElementById('email-results').style.display = 'none';
@@ -2131,7 +2115,7 @@ Return ONLY this JSON:
   async function sendCopilot() {
     const text = document.getElementById('copilot-inp').value.trim();
     if (!text) { alert('Please enter a question or message.'); return; }
-    if (!apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Please set at least one API key — tap 🔑 Key in the top bar.'); return; }
+    if (!workerUrl && !apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Configure a Worker URL or API keys in Settings ⚙️'); return; }
     const btn = document.getElementById('copilot-send-btn');
     btn.disabled = true; btn.textContent = 'Thinking...';
     document.getElementById('copilot-loading').style.display = 'block';
@@ -2510,7 +2494,7 @@ Rules:
   async function aiNoteAction(action) {
     const content = document.getElementById('note-content-inp').value.trim();
     if (!content) { alert('Write something in the note first.'); return; }
-    if (!apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Please set at least one API key — tap 🔑 Key in the top bar.'); return; }
+    if (!workerUrl && !apiKey && !cerebrasKey && !geminiKey && !mistralKey) { alert('Configure a Worker URL or API keys in Settings ⚙️'); return; }
 
     const prompts = {
       improve:   { label:'✨ Improved English', sys:'You are an expert English editor.', user:'Improve the English grammar, clarity, and flow of this text. Keep the same meaning. Show only the improved version:\n\n' + content },
