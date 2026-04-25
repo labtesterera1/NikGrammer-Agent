@@ -2837,40 +2837,49 @@ Rules:
     try {
       let result = '';
       if (provider === 'worker') {
-        if (!workerUrl) { badge.textContent = '⬜'; sub.textContent = 'No Worker URL set'; sub.style.color='var(--muted)'; return false; }
-        const res = await fetch(workerUrl + '/test', { method: 'GET', signal: AbortSignal.timeout(8000) });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const d = await res.json();
+        if (!workerUrl) { badge.textContent = '⬜'; sub.textContent = 'No Worker URL set in Settings'; sub.style.color='var(--muted)'; return false; }
+        const res = await fetch(workerUrl + '/test', { method: 'GET', signal: AbortSignal.timeout(10000) });
+        const d = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(d.error || ('HTTP ' + res.status));
         result = d.message || 'Connected';
+      } else if (workerUrl) {
+        // ── Test provider VIA the worker (since keys live there) ──
+        const res = await fetch(workerUrl + '/test/' + provider, { method: 'GET', signal: AbortSignal.timeout(15000) });
+        const d = await res.json().catch(() => ({}));
+        if (!d.ok) throw new Error(d.error || 'Provider test failed');
+        result = 'Connected via Worker · "' + (d.response || 'ok').slice(0, 40) + '"';
       } else if (provider === 'groq') {
-        if (!apiKey) { badge.textContent = '⬜'; sub.textContent = 'No Groq key set'; sub.style.color='var(--muted)'; return false; }
+        if (!apiKey) { badge.textContent = '⬜'; sub.textContent = 'No Groq key set (or set Worker URL)'; sub.style.color='var(--muted)'; return false; }
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method:'POST', signal: AbortSignal.timeout(8000),
+          method:'POST', signal: AbortSignal.timeout(10000),
           headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
           body: JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:5,messages:[{role:'user',content:'Hi'}]})
         });
-        if (res.status === 401) throw new Error('Invalid API key');
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const d = await res.json().catch(() => ({}));
+        if (res.status === 401) throw new Error('Invalid Groq API key');
+        if (!res.ok) throw new Error(d?.error?.message || ('HTTP ' + res.status));
         result = 'Connected · llama-3.3-70b';
       } else if (provider === 'cerebras') {
-        if (!cerebrasKey) { badge.textContent = '⬜'; sub.textContent = 'No Cerebras key set'; sub.style.color='var(--muted)'; return false; }
+        if (!cerebrasKey) { badge.textContent = '⬜'; sub.textContent = 'No Cerebras key set (or set Worker URL)'; sub.style.color='var(--muted)'; return false; }
         const res = await fetch('https://api.cerebras.ai/v1/chat/completions', {
-          method:'POST', signal: AbortSignal.timeout(8000),
+          method:'POST', signal: AbortSignal.timeout(10000),
           headers:{'Content-Type':'application/json','Authorization':'Bearer '+cerebrasKey},
           body: JSON.stringify({model:'llama-3.3-70b',max_tokens:5,messages:[{role:'user',content:'Hi'}]})
         });
-        if (res.status === 401) throw new Error('Invalid API key');
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const d = await res.json().catch(() => ({}));
+        if (res.status === 401) throw new Error('Invalid Cerebras API key');
+        if (!res.ok) throw new Error(d?.error?.message || ('HTTP ' + res.status));
         result = 'Connected · llama-3.3-70b';
       } else if (provider === 'gemini') {
-        if (!geminiKey) { badge.textContent = '⬜'; sub.textContent = 'No Gemini key set'; sub.style.color='var(--muted)'; return false; }
+        if (!geminiKey) { badge.textContent = '⬜'; sub.textContent = 'No Gemini key set (or set Worker URL)'; sub.style.color='var(--muted)'; return false; }
         const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + geminiKey, {
-          method:'POST', signal: AbortSignal.timeout(8000),
+          method:'POST', signal: AbortSignal.timeout(10000),
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify({contents:[{role:'user',parts:[{text:'Hi'}]}],generationConfig:{maxOutputTokens:5}})
         });
-        if (res.status === 400 || res.status === 401) throw new Error('Invalid API key');
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const d = await res.json().catch(() => ({}));
+        if (res.status === 400 || res.status === 401) throw new Error('Invalid Gemini API key');
+        if (!res.ok) throw new Error(d?.error?.message || ('HTTP ' + res.status));
         result = 'Connected · gemini-2.0-flash';
       }
       badge.textContent = '✅';
@@ -2879,7 +2888,7 @@ Rules:
       return true;
     } catch(err) {
       badge.textContent = '❌';
-      sub.textContent = err.message || 'Connection failed';
+      sub.textContent = (err.name === 'TimeoutError' ? 'Timeout — Worker URL wrong or down?' : (err.message || 'Connection failed'));
       sub.style.color = 'var(--red)';
       return false;
     }
@@ -2889,17 +2898,24 @@ Rules:
   async function callAI(messages, maxTokens) {
     // ── Route through Cloudflare Worker proxy if URL is set ──
     if (workerUrl) {
-      const res = await fetch(workerUrl + '/api/chat', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ messages, maxTokens: maxTokens || 1200 })
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Worker error: HTTP ' + res.status);
+      try {
+        const res = await fetch(workerUrl + '/api/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ messages, maxTokens: maxTokens || 1200 }),
+          signal: AbortSignal.timeout(45000)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || ('Worker HTTP ' + res.status + ' — check Settings → Test Connections'));
+        }
+        if (!data.text) throw new Error('Worker returned empty response');
+        return data.text;
+      } catch(e) {
+        if (e.name === 'TimeoutError') throw new Error('Worker timeout (45s) — is your Worker URL correct?');
+        if (e.message.includes('Failed to fetch')) throw new Error('Cannot reach Worker — check URL, CORS, and that the Worker is deployed.');
+        throw e;
       }
-      const data = await res.json();
-      return data.text;
     }
 
     // ── Direct provider fallback ──
