@@ -74,23 +74,38 @@
     .page.active{display:flex;}
 
     /* CHAT PAGE */
-    #msg-list{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px;min-height:0;background:var(--bg);}
-    .msg{display:flex;flex-direction:column;max-width:88%;}
+    #msg-list{flex:1;overflow-y:auto;padding:12px 12px 8px;display:flex;flex-direction:column;gap:8px;min-height:0;background:linear-gradient(180deg,#f1f5f9 0%,#e8eef7 100%);}
+    .msg{display:flex;flex-direction:column;max-width:85%;position:relative;}
     .msg.user{align-self:flex-end;align-items:flex-end;}
     .msg.bot{align-self:flex-start;}
-    .msg-label{font-size:10px;color:var(--muted);margin-bottom:3px;font-weight:500;}
-    .bubble{padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word;box-shadow:var(--shadow);}
-    .msg.user .bubble{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-bottom-right-radius:4px;}
-    .msg.bot .bubble{background:#fff;border:1px solid var(--border);border-bottom-left-radius:4px;color:var(--text);}
-    .typing{display:flex;gap:4px;padding:12px 16px;}
+    .msg-label{font-size:10px;color:var(--muted);margin-bottom:3px;font-weight:500;letter-spacing:0.3px;}
+    .bubble{padding:12px 16px;border-radius:18px;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word;box-shadow:0 2px 8px rgba(0,0,0,0.08);transition:all 0.15s;}
+    .msg.user .bubble{background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);color:#fff;border-bottom-right-radius:4px;box-shadow:0 4px 12px rgba(99,102,241,0.25);}
+    .msg.bot .bubble{background:#fff;border:1.5px solid var(--border);border-bottom-left-radius:4px;color:var(--text);box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+    .msg-actions{display:flex;gap:6px;margin-top:6px;align-items:center;opacity:0;transition:opacity 0.2s;}
+    .msg.bot:hover .msg-actions{opacity:1;}
+    .msg-action-btn{padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;color:#64748b;font-size:11px;cursor:pointer;font-family:inherit;font-weight:500;transition:all 0.15s;display:flex;align-items:center;gap:4px;}
+    .msg-action-btn:active{background:var(--bg);border-color:var(--accent);color:var(--accent);}
+    .typing{display:flex;gap:4px;padding:12px 16px;background:#fff;border-radius:18px;box-shadow:0 2px 6px rgba(0,0,0,0.05);}
     .dot{width:7px;height:7px;border-radius:50%;background:#bbb;animation:bop 1.2s infinite;}
     .dot:nth-child(2){animation-delay:.2s;}.dot:nth-child(3){animation-delay:.4s;}
     @keyframes bop{0%,80%,100%{transform:scale(0.7);opacity:0.4}40%{transform:scale(1);opacity:1}}
 
-    #chat-input-row{padding:10px 12px;background:#fff;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 8px rgba(0,0,0,0.04);}
-    #chat-inp{flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:22px;font-size:14px;font-family:inherit;resize:none;min-height:42px;max-height:110px;outline:none;line-height:1.5;background:#f8fafc;transition:border-color 0.15s;}
-    #chat-inp:focus{border-color:var(--accent);background:#fff;}
-    #send-btn{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(99,102,241,0.4);}
+    #chat-toolbar{display:flex;gap:4px;padding:8px 12px;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;align-items:center;}
+    #chat-toolbar::-webkit-scrollbar{display:none;}
+    .format-btn{width:36px;height:36px;border:1.5px solid var(--border);border-radius:8px;background:#f8fafc;color:var(--muted);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;font-family:inherit;}
+    .format-btn:active{background:var(--accent);color:#fff;border-color:var(--accent);}
+    .divider-toolbar{width:1px;height:24px;background:var(--border);margin:0 4px;}
+    #emoji-picker-container{position:absolute;bottom:60px;right:12px;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 -4px 16px rgba(0,0,0,0.15);display:none;z-index:100;padding:8px;max-height:200px;overflow-y:auto;width:280px;}
+    #emoji-picker-container.show{display:block;}
+    .emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;}
+    .emoji-btn{width:32px;height:32px;border:none;background:transparent;font-size:20px;cursor:pointer;border-radius:6px;transition:background 0.15s;}
+    .emoji-btn:hover{background:#f1f5f9;}
+    #chat-input-row{padding:8px 12px;background:#fff;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 8px rgba(0,0,0,0.04);position:relative;}
+    #chat-inp{flex:1;padding:11px 16px;border:1.5px solid var(--border);border-radius:24px;font-size:14px;font-family:inherit;resize:none;min-height:42px;max-height:110px;outline:none;line-height:1.5;background:#f8fafc;transition:all 0.15s;}
+    #chat-inp:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(99,102,241,0.1);}
+    #send-btn{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);color:#fff;border:none;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(99,102,241,0.3);transition:all 0.15s;}
+    #send-btn:active{transform:scale(0.95);}
     #send-btn:disabled{opacity:0.35;box-shadow:none;}
 
     /* MODE BAR */
@@ -286,13 +301,9 @@
         <button id="btn-en" class="active" onclick="setLang('en')">EN</button>
         <button id="btn-hi" onclick="setLang('hi')">HI</button>
       </div>
-      <!-- PWA Install — hidden until beforeinstallprompt fires -->
-      <button id="btn-install" onclick="triggerInstall()" title="Install App"
-        style="display:none;align-items:center;gap:5px;padding:5px 10px;border:none;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">
-        ⬇ Install app
-      </button>
+      <!-- PWA Install — hidden until beforeinstallprompt fires, only visible in Settings -->
+      <!-- Install button removed from topbar — use Settings tab instead -->
       <button onclick="showPage('settings')" style="padding:5px 10px;border:none;border-radius:8px;background:rgba(255,255,255,0.15);color:#fff;font-size:16px;cursor:pointer;font-family:inherit;" title="Settings">⚙️</button>
-      <button onclick="changeKey()" style="padding:5px 10px;border:none;border-radius:8px;background:rgba(255,255,255,0.15);color:#fff;font-size:11px;cursor:pointer;font-family:inherit;" title="Change API Key">🔑 Key</button>
     </div>
   </div>
 </div>
@@ -315,6 +326,54 @@
       <button class="quick-chip" onclick="useQ('When to use a an the?')">Articles</button>
     </div>
     <div id="msg-list"></div>
+    <!-- Emoji Picker -->
+    <div id="emoji-picker-container">
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--muted);">Pick an emoji</div>
+      <div class="emoji-grid" id="emoji-grid">
+        <button class="emoji-btn" onclick="insertEmoji('😀')">😀</button>
+        <button class="emoji-btn" onclick="insertEmoji('😂')">😂</button>
+        <button class="emoji-btn" onclick="insertEmoji('😍')">😍</button>
+        <button class="emoji-btn" onclick="insertEmoji('👍')">👍</button>
+        <button class="emoji-btn" onclick="insertEmoji('👏')">👏</button>
+        <button class="emoji-btn" onclick="insertEmoji('🎉')">🎉</button>
+        <button class="emoji-btn" onclick="insertEmoji('💡')">💡</button>
+        <button class="emoji-btn" onclick="insertEmoji('✅')">✅</button>
+        <button class="emoji-btn" onclick="insertEmoji('❌')">❌</button>
+        <button class="emoji-btn" onclick="insertEmoji('🤔')">🤔</button>
+        <button class="emoji-btn" onclick="insertEmoji('😊')">😊</button>
+        <button class="emoji-btn" onclick="insertEmoji('🚀')">🚀</button>
+        <button class="emoji-btn" onclick="insertEmoji('⭐')">⭐</button>
+        <button class="emoji-btn" onclick="insertEmoji('🔥')">🔥</button>
+        <button class="emoji-btn" onclick="insertEmoji('💬')">💬</button>
+        <button class="emoji-btn" onclick="insertEmoji('✨')">✨</button>
+      </div>
+    </div>
+    <!-- Format Toolbar -->
+    <div id="chat-toolbar">
+      <button class="format-btn" onclick="applyFormat('bold')" title="Bold">
+        <strong>B</strong>
+      </button>
+      <button class="format-btn" onclick="applyFormat('italic')" title="Italic">
+        <em>I</em>
+      </button>
+      <button class="format-btn" onclick="applyFormat('underline')" title="Underline">
+        <u>U</u>
+      </button>
+      <button class="format-btn" onclick="applyFormat('strikethrough')" title="Strikethrough">
+        <s>S</s>
+      </button>
+      <div class="divider-toolbar"></div>
+      <button class="format-btn" onclick="applyFormat('bullet')" title="Bullet List">
+        •
+      </button>
+      <button class="format-btn" onclick="applyFormat('number')" title="Numbered List">
+        1️⃣
+      </button>
+      <div class="divider-toolbar"></div>
+      <button class="format-btn" onclick="toggleEmojiPicker()" title="Emoji Picker">
+        😊
+      </button>
+    </div>
     <div id="chat-input-row">
       <textarea id="chat-inp" rows="1" placeholder="Ask a grammar question..." onkeydown="handleKey(event)" oninput="autoR(this)"></textarea>
       <button id="send-btn" onclick="sendMsg()">➤</button>
@@ -1095,22 +1154,6 @@
         <div id="test-summary" style="margin-top:10px;font-size:12px;color:var(--muted);text-align:center;display:none;"></div>
       </div>
 
-      <!-- 🔑 API Keys -->
-      <div class="card">
-        <h3>🔑 Direct API Keys</h3>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;">Used when no Worker URL is set. Keys are stored only on this device.</p>
-        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Groq Key <span style="font-weight:400;color:#aaa;">(console.groq.com)</span></label>
-        <input id="sett-groq" type="password" placeholder="gsk_..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;background:#f8fafc;" />
-        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Cerebras Key <span style="font-weight:400;color:#aaa;">(cloud.cerebras.ai)</span></label>
-        <input id="sett-cerebras" type="password" placeholder="csk_..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;background:#f8fafc;" />
-        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Gemini Key <span style="font-weight:400;color:#aaa;">(aistudio.google.com/apikey)</span></label>
-        <input id="sett-gemini" type="password" placeholder="AIza..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;background:#f8fafc;" />
-        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Mistral Key <span style="font-weight:400;color:#aaa;">(console.mistral.ai)</span></label>
-        <input id="sett-mistral" type="password" placeholder="..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;margin-bottom:12px;outline:none;font-family:inherit;background:#f8fafc;" />
-        <button class="btn-primary" onclick="saveSettingsKeys()" style="width:100%;">💾 Save Keys</button>
-        <p style="font-size:11px;color:#94a3b8;text-align:center;margin-top:8px;">Keys stored only on your device · Never sent to our servers</p>
-      </div>
-
       <!-- 📱 PWA Install -->
       <div class="card" id="pwa-install-card">
         <h3>📱 Install App</h3>
@@ -1128,9 +1171,6 @@
         <div style="font-size:15px;font-weight:700;color:var(--dark);">Grammar AI Agent</div>
         <div style="font-size:12px;color:var(--muted);margin-top:4px;">by Nik · PWA v1.0</div>
         <div style="font-size:11px;color:#94a3b8;margin-top:6px;line-height:1.7;">Powered by Groq · Cerebras · Gemini · Mistral<br>Hosted on GitHub Pages · Proxy via Cloudflare Workers</div>
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-          <button onclick="clearAllData()" style="font-size:12px;color:var(--red);border:1px solid #fca5a5;background:#fff8f8;border-radius:8px;padding:7px 16px;cursor:pointer;font-family:inherit;">🗑 Clear All App Data</button>
-        </div>
       </div>
 
     </div>
@@ -1350,9 +1390,56 @@ Rules:
     const div = document.createElement('div');
     div.className = 'msg ' + role;
     const label = role === 'user' ? 'You' : 'Agent';
-    div.innerHTML = `<span class="msg-label">${label}</span><div class="bubble">${escH(text)}</div>`;
+    const msgId = 'msg-' + Date.now() + Math.random().toString(36).slice(2);
+    
+    let actions = '';
+    if (role === 'bot') {
+      actions = `
+        <div class="msg-actions">
+          <button class="msg-action-btn" onclick="copyMsg('${msgId}')" title="Copy message">
+            <span>📋</span> Copy
+          </button>
+          <button class="msg-action-btn" onclick="downloadMsg('${msgId}')" title="Download as file">
+            <span>⬇️</span> Download
+          </button>
+        </div>
+      `;
+    }
+    
+    div.id = msgId;
+    div.innerHTML = `
+      <span class="msg-label">${label}</span>
+      <div class="bubble">${escH(text)}</div>
+      ${actions}
+    `;
     list.appendChild(div);
     list.scrollTop = list.scrollHeight;
+  }
+
+  function copyMsg(msgId) {
+    const bubble = document.querySelector('#' + msgId + ' .bubble');
+    if (bubble) {
+      const text = bubble.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = event.target.closest('.msg-action-btn');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<span>✅</span> Copied!';
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+      });
+    }
+  }
+
+  function downloadMsg(msgId) {
+    const bubble = document.querySelector('#' + msgId + ' .bubble');
+    if (bubble) {
+      const text = bubble.textContent;
+      const blob = new Blob([text], {type:'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'grammar-answer-' + new Date().getTime() + '.txt';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
   }
 
   function showTyping() {
@@ -2524,6 +2611,54 @@ Rules:
     a.click();
     URL.revokeObjectURL(a.href);
   }
+
+  // ====== CHAT FORMATTING & EMOJI ======
+  function applyFormat(format) {
+    const inp = document.getElementById('chat-inp');
+    const start = inp.selectionStart;
+    const end = inp.selectionEnd;
+    const selected = inp.value.substring(start, end);
+    if (!selected) return;
+    
+    let formatted = selected;
+    switch(format) {
+      case 'bold':      formatted = '**' + selected + '**'; break;
+      case 'italic':    formatted = '_' + selected + '_'; break;
+      case 'underline': formatted = '__' + selected + '__'; break;
+      case 'strikethrough': formatted = '~~' + selected + '~~'; break;
+      case 'bullet':    formatted = '\n• ' + selected; break;
+      case 'number':    formatted = '\n1. ' + selected; break;
+    }
+    
+    const newText = inp.value.substring(0, start) + formatted + inp.value.substring(end);
+    inp.value = newText;
+    inp.focus();
+    inp.selectionStart = inp.selectionEnd = start + formatted.length;
+  }
+
+  function toggleEmojiPicker() {
+    const picker = document.getElementById('emoji-picker-container');
+    picker.classList.toggle('show');
+  }
+
+  function insertEmoji(emoji) {
+    const inp = document.getElementById('chat-inp');
+    const start = inp.selectionStart;
+    const newText = inp.value.substring(0, start) + emoji + inp.value.substring(start);
+    inp.value = newText;
+    inp.focus();
+    inp.selectionStart = inp.selectionEnd = start + emoji.length;
+    document.getElementById('emoji-picker-container').classList.remove('show');
+  }
+
+  // Close emoji picker when clicking outside
+  document.addEventListener('click', e => {
+    const picker = document.getElementById('emoji-picker-container');
+    const emojiBtn = document.querySelector('[onclick="toggleEmojiPicker()"]');
+    if (picker && !picker.contains(e.target) && e.target !== emojiBtn) {
+      picker.classList.remove('show');
+    }
+  });
 
   // ====== PWA INSTALL ======
   function triggerInstall() {
