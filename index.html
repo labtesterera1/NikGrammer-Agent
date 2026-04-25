@@ -11,19 +11,28 @@
   <link rel="manifest" href="manifest.json"/>
   <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <script>
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+    // Service Worker — wait for load + handle errors (Android Chrome safety)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => {
+          console.warn('SW registration failed (non-fatal):', err.message);
+        });
+      });
+    }
+    // Global error handler — prevents silent JS failures on Android
+    window.addEventListener('error', e => {
+      console.warn('JS error caught:', e.message, 'at', e.filename, ':', e.lineno);
+    });
     // PWA Install prompt — capture early before any user gesture
     let _deferredInstall = null;
     window.addEventListener('beforeinstallprompt', e => {
       e.preventDefault();
       _deferredInstall = e;
-      const btn = document.getElementById('btn-install');
-      if (btn) { btn.style.display = 'flex'; }
+      const btn = document.getElementById('btn-install-settings');
+      if (btn) btn.style.display = 'inline-flex';
     });
     window.addEventListener('appinstalled', () => {
       _deferredInstall = null;
-      const btn = document.getElementById('btn-install');
-      if (btn) btn.style.display = 'none';
     });
   </script>
   <style>
@@ -45,7 +54,7 @@
       --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.06);
       --shadow-md:0 4px 12px rgba(0,0,0,0.1);
     }
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;min-height:0;-webkit-text-size-adjust:100%;}
 
     /* TOP BAR — gradient */
     #topbar{background:linear-gradient(135deg,var(--dark) 0%,var(--dark2) 100%);color:#fff;padding:env(safe-area-inset-top) 16px 0;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
@@ -260,7 +269,7 @@
     .notes-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;}
     .note-tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;background:#e0e7ff;color:var(--accent);margin:2px;font-weight:600;}
     .note-editor-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:100;display:flex;flex-direction:column;backdrop-filter:blur(2px);}
-    .note-editor-inner{background:#fff;margin-top:auto;border-radius:24px 24px 0 0;padding:22px;max-height:92dvh;display:flex;flex-direction:column;gap:12px;overflow-y:auto;box-shadow:0 -4px 24px rgba(0,0,0,0.15);}
+    .note-editor-inner{background:#fff;margin-top:auto;border-radius:24px 24px 0 0;padding:22px;max-height:92vh;max-height:92dvh;display:flex;flex-direction:column;gap:12px;overflow-y:auto;box-shadow:0 -4px 24px rgba(0,0,0,0.15);}
     .note-editor-title{font-size:17px;font-weight:700;color:var(--dark);}
     .note-tag-sel{display:flex;gap:6px;flex-wrap:wrap;}
     .note-tag-opt{padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;background:#f8fafc;color:var(--muted);font-family:inherit;font-weight:500;transition:all 0.15s;}
@@ -273,7 +282,7 @@
 
 <!-- SETUP SCREEN -->
 <div id="setup">
-  <div class="setup-card" style="max-height:90dvh;overflow-y:auto;">
+  <div class="setup-card" style="max-height:90vh;max-height:90dvh;overflow-y:auto;">
     <h2>🔑 Setup AI Keys</h2>
     <p>Add one or more free AI keys. The app will auto-rotate between them when one is rate limited.</p>
     <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Groq Key <span style="color:#aaa;font-weight:400;">(console.groq.com)</span></label>
@@ -330,47 +339,47 @@
     <div id="emoji-picker-container">
       <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--muted);">Pick an emoji</div>
       <div class="emoji-grid" id="emoji-grid">
-        <button class="emoji-btn" onclick="insertEmoji('😀')">😀</button>
-        <button class="emoji-btn" onclick="insertEmoji('😂')">😂</button>
-        <button class="emoji-btn" onclick="insertEmoji('😍')">😍</button>
-        <button class="emoji-btn" onclick="insertEmoji('👍')">👍</button>
-        <button class="emoji-btn" onclick="insertEmoji('👏')">👏</button>
-        <button class="emoji-btn" onclick="insertEmoji('🎉')">🎉</button>
-        <button class="emoji-btn" onclick="insertEmoji('💡')">💡</button>
-        <button class="emoji-btn" onclick="insertEmoji('✅')">✅</button>
-        <button class="emoji-btn" onclick="insertEmoji('❌')">❌</button>
-        <button class="emoji-btn" onclick="insertEmoji('🤔')">🤔</button>
-        <button class="emoji-btn" onclick="insertEmoji('😊')">😊</button>
-        <button class="emoji-btn" onclick="insertEmoji('🚀')">🚀</button>
-        <button class="emoji-btn" onclick="insertEmoji('⭐')">⭐</button>
-        <button class="emoji-btn" onclick="insertEmoji('🔥')">🔥</button>
-        <button class="emoji-btn" onclick="insertEmoji('💬')">💬</button>
-        <button class="emoji-btn" onclick="insertEmoji('✨')">✨</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😀')">😀</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😂')">😂</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😍')">😍</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('👍')">👍</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('👏')">👏</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🎉')">🎉</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('💡')">💡</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('✅')">✅</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('❌')">❌</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🤔')">🤔</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😊')">😊</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🚀')">🚀</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('⭐')">⭐</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🔥')">🔥</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('💬')">💬</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('✨')">✨</button>
       </div>
     </div>
     <!-- Format Toolbar -->
     <div id="chat-toolbar">
-      <button class="format-btn" onclick="applyFormat('bold')" title="Bold">
+      <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="applyFormat('bold')" title="Bold">
         <strong>B</strong>
       </button>
-      <button class="format-btn" onclick="applyFormat('italic')" title="Italic">
+      <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="applyFormat('italic')" title="Italic">
         <em>I</em>
       </button>
-      <button class="format-btn" onclick="applyFormat('underline')" title="Underline">
+      <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="applyFormat('underline')" title="Underline">
         <u>U</u>
       </button>
-      <button class="format-btn" onclick="applyFormat('strikethrough')" title="Strikethrough">
+      <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="applyFormat('strikethrough')" title="Strikethrough">
         <s>S</s>
       </button>
       <div class="divider-toolbar"></div>
-      <button class="format-btn" onclick="applyFormat('bullet')" title="Bullet List">
+      <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="applyFormat('bullet')" title="Bullet List">
         •
       </button>
-      <button class="format-btn" onclick="applyFormat('number')" title="Numbered List">
-        1️⃣
+      <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="applyFormat('number')" title="Numbered List">
+        1.
       </button>
       <div class="divider-toolbar"></div>
-      <button class="format-btn" onclick="toggleEmojiPicker()" title="Emoji Picker">
+      <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="toggleEmojiPicker()" title="Emoji Picker">
         😊
       </button>
     </div>
@@ -1162,7 +1171,7 @@
           style="width:100%;padding:12px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;">
           ⬇ Install App on This Device
         </button>
-        <p style="font-size:11px;color:#94a3b8;text-align:center;margin-top:8px;">Open in Chrome on Android → the install prompt will appear above</p>
+        <p id="install-hint-text" style="font-size:11px;color:#94a3b8;text-align:center;margin-top:10px;line-height:1.6;">On Android Chrome: tap <strong>⋮ menu → Install app</strong>. The native install prompt may take ~30 seconds to appear.</p>
       </div>
 
       <!-- ℹ️ About -->
@@ -1264,7 +1273,7 @@ Rules:
     overlay.id = 'key-settings-overlay';
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;';
     overlay.innerHTML = `
-      <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:380px;max-height:90dvh;overflow-y:auto;">
+      <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:380px;max-height:90vh;max-height:90dvh;overflow-y:auto;">
         <h2 style="font-size:17px;font-weight:600;margin-bottom:12px;">🔑 Manage API Keys</h2>
         <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Groq <span style="color:#aaa;font-weight:400;">(console.groq.com)</span></label>
         <input id="ks-groq" type="password" value="${apiKey}" placeholder="gsk_..." style="width:100%;padding:9px 12px;border:1px solid #e8e8e4;border-radius:8px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;"/>
@@ -1320,9 +1329,27 @@ Rules:
     if (sc && !sc.value) sc.value = cerebrasKey;
     if (sgm && !sgm.value) sgm.value = geminiKey;
     if (sm && !sm.value) sm.value = mistralKey;
-    // Show/hide install card based on prompt availability
+    // Install card — always visible, content adapts based on prompt availability
     const ic = document.getElementById('pwa-install-card');
-    if (ic) ic.style.display = _deferredInstall ? 'block' : 'none';
+    if (ic) {
+      ic.style.display = 'block';
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const btn = document.getElementById('btn-install-settings');
+      const hint = document.getElementById('install-hint-text');
+      if (isStandalone) {
+        // Already installed
+        if (btn) { btn.textContent = '✅ App Installed'; btn.disabled = true; btn.style.opacity = '0.7'; btn.style.background = '#10b981'; }
+        if (hint) hint.textContent = 'Grammar AI is running as an installed app.';
+      } else if (_deferredInstall) {
+        // Native install prompt available
+        if (btn) { btn.innerHTML = '⬇ Install App on This Device'; btn.disabled = false; btn.style.opacity = '1'; }
+        if (hint) hint.textContent = 'Tap the button above to install. Works in Chrome on Android.';
+      } else {
+        // Manual install instructions (most common state on first visit)
+        if (btn) { btn.innerHTML = '⬇ Install via Chrome Menu'; btn.disabled = false; btn.style.opacity = '1'; }
+        if (hint) hint.innerHTML = 'On Android Chrome: tap <strong>⋮ menu → Install app</strong> (or "Add to Home screen"). The native install prompt may take ~30 seconds to appear.';
+      }
+    }
     // Reset test badges
     ['worker','groq','cerebras','gemini'].forEach(p => {
       const b = document.getElementById('test-badge-' + p);
@@ -2618,22 +2645,67 @@ Rules:
     const start = inp.selectionStart;
     const end = inp.selectionEnd;
     const selected = inp.value.substring(start, end);
-    if (!selected) return;
-    
-    let formatted = selected;
+    const before = inp.value.substring(0, start);
+    const after = inp.value.substring(end);
+
+    let formatted = '';
+    let cursorOffset = 0;
+
     switch(format) {
-      case 'bold':      formatted = '**' + selected + '**'; break;
-      case 'italic':    formatted = '_' + selected + '_'; break;
-      case 'underline': formatted = '__' + selected + '__'; break;
-      case 'strikethrough': formatted = '~~' + selected + '~~'; break;
-      case 'bullet':    formatted = '\n• ' + selected; break;
-      case 'number':    formatted = '\n1. ' + selected; break;
+      case 'bold':
+        formatted = selected ? '**' + selected + '**' : '****';
+        cursorOffset = selected ? formatted.length : 2;
+        break;
+      case 'italic':
+        formatted = selected ? '_' + selected + '_' : '__';
+        cursorOffset = selected ? formatted.length : 1;
+        break;
+      case 'underline':
+        formatted = selected ? '__' + selected + '__' : '____';
+        cursorOffset = selected ? formatted.length : 2;
+        break;
+      case 'strikethrough':
+        formatted = selected ? '~~' + selected + '~~' : '~~~~';
+        cursorOffset = selected ? formatted.length : 2;
+        break;
+      case 'bullet': {
+        // Insert bullet at start of current line — works without selection
+        const needsNewline = before.length && !before.endsWith('\n');
+        if (selected) {
+          // Bullet each line of selection
+          formatted = selected.split('\n').map(l => '• ' + l).join('\n');
+          if (needsNewline) formatted = '\n' + formatted;
+        } else {
+          formatted = (needsNewline ? '\n' : '') + '• ';
+        }
+        cursorOffset = formatted.length;
+        break;
+      }
+      case 'number': {
+        // Smart numbered list — auto-increments based on previous lines
+        const needsNewline = before.length && !before.endsWith('\n');
+        // Find the last "N. " in the text before cursor (on same paragraph)
+        const lastBlock = before.split('\n\n').pop() || '';
+        const numMatches = lastBlock.match(/^(\d+)\.\s/gm);
+        const nextNum = numMatches ? parseInt(numMatches[numMatches.length - 1]) + 1 : 1;
+        if (selected) {
+          // Number each line of selection
+          let n = nextNum;
+          formatted = selected.split('\n').map(l => (n++) + '. ' + l).join('\n');
+          if (needsNewline) formatted = '\n' + formatted;
+        } else {
+          formatted = (needsNewline ? '\n' : '') + nextNum + '. ';
+        }
+        cursorOffset = formatted.length;
+        break;
+      }
     }
-    
-    const newText = inp.value.substring(0, start) + formatted + inp.value.substring(end);
-    inp.value = newText;
+
+    inp.value = before + formatted + after;
     inp.focus();
-    inp.selectionStart = inp.selectionEnd = start + formatted.length;
+    const newPos = start + cursorOffset;
+    inp.selectionStart = inp.selectionEnd = newPos;
+    autoR(inp);
   }
 
   function toggleEmojiPicker() {
@@ -2667,7 +2739,8 @@ Rules:
       _deferredInstall.userChoice.then(r => {
         if (r.outcome === 'accepted') {
           _deferredInstall = null;
-          document.getElementById('btn-install').style.display = 'none';
+          const btn = document.getElementById('btn-install-settings');
+          if (btn) btn.style.display = 'none';
         }
       });
     } else {
