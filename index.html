@@ -98,8 +98,11 @@
     .bubble{padding:12px 16px;border-radius:18px;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word;box-shadow:0 2px 8px rgba(0,0,0,0.08);transition:all 0.15s;}
     .msg.user .bubble{background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);color:#fff;border-bottom-right-radius:4px;box-shadow:0 4px 12px rgba(99,102,241,0.25);}
     .msg.bot .bubble{background:#fff;border:1.5px solid var(--border);border-bottom-left-radius:4px;color:var(--text);box-shadow:0 2px 6px rgba(0,0,0,0.05);}
-    .msg-actions{display:flex;gap:6px;margin-top:6px;align-items:center;opacity:0;transition:opacity 0.2s;}
-    .msg.bot:hover .msg-actions{opacity:1;}
+    .msg-actions{display:flex;gap:6px;margin-top:6px;align-items:center;opacity:1;transition:opacity 0.2s;}
+    @media(hover:hover){
+      .msg-actions{opacity:0;}
+      .msg.bot:hover .msg-actions{opacity:1;}
+    }
     .msg-action-btn{padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;color:#64748b;font-size:11px;cursor:pointer;font-family:inherit;font-weight:500;transition:all 0.15s;display:flex;align-items:center;gap:4px;}
     .msg-action-btn:active{background:var(--bg);border-color:var(--accent);color:var(--accent);}
     .typing{display:flex;gap:4px;padding:12px 16px;background:#fff;border-radius:18px;box-shadow:0 2px 6px rgba(0,0,0,0.05);}
@@ -1220,11 +1223,21 @@
 </div>
 
 <script>
-  let apiKey = localStorage.getItem('grammar_key') || '';
-  let cerebrasKey = localStorage.getItem('grammar_cerebras_key') || '';
-  let geminiKey = localStorage.getItem('grammar_gemini_key') || '';
-  let mistralKey = localStorage.getItem('grammar_mistral_key') || '';
-  let workerUrl = (localStorage.getItem('grammar_worker_url') || '').replace(/\/$/, '');
+  // Safe initial loads — wrapped to handle Android private mode
+  let apiKey = '';
+  let cerebrasKey = '';
+  let geminiKey = '';
+  let mistralKey = '';
+  let workerUrl = '';
+  try {
+    apiKey      = localStorage.getItem('grammar_key') || '';
+    cerebrasKey = localStorage.getItem('grammar_cerebras_key') || '';
+    geminiKey   = localStorage.getItem('grammar_gemini_key') || '';
+    mistralKey  = localStorage.getItem('grammar_mistral_key') || '';
+    workerUrl   = (localStorage.getItem('grammar_worker_url') || '').replace(/\/$/, '');
+  } catch(e) {
+    console.warn('localStorage unavailable (Android private mode?):', e);
+  }
   // Track rate-limit cooldowns per provider
   const providerCooldown = { groq: 0, cerebras: 0, gemini: 0, mistral: 0 };
   let chatHistory = [];
@@ -1414,12 +1427,12 @@ Rules:
     div.className = 'msg ' + role;
     const label = role === 'user' ? 'You' : 'Agent';
     const msgId = 'msg-' + Date.now() + Math.random().toString(36).slice(2);
-    
+
     let actions = '';
     if (role === 'bot') {
       actions = `
         <div class="msg-actions">
-          <button class="msg-action-btn" onclick="copyMsg('${msgId}')" title="Copy message">
+          <button class="msg-action-btn" onclick="copyMsg('${msgId}', event)" title="Copy message">
             <span>📋</span> Copy
           </button>
           <button class="msg-action-btn" onclick="downloadMsg('${msgId}')" title="Download as file">
@@ -1428,41 +1441,44 @@ Rules:
         </div>
       `;
     }
-    
+
     div.id = msgId;
+    // Store raw text on the element for accurate copy/download (without HTML markup)
+    div.dataset.raw = text || '';
     div.innerHTML = `
       <span class="msg-label">${label}</span>
-      <div class="bubble">${escH(text)}</div>
+      <div class="bubble">${renderMd(text)}</div>
       ${actions}
     `;
     list.appendChild(div);
     list.scrollTop = list.scrollHeight;
   }
 
-  function copyMsg(msgId) {
-    const bubble = document.querySelector('#' + msgId + ' .bubble');
-    if (bubble) {
-      const text = bubble.textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = event.target.closest('.msg-action-btn');
-        const orig = btn.innerHTML;
-        btn.innerHTML = '<span>✅</span> Copied!';
-        setTimeout(() => { btn.innerHTML = orig; }, 2000);
-      });
+  async function copyMsg(msgId, evt) {
+    const wrap = document.getElementById(msgId);
+    if (!wrap) return;
+    const text = wrap.dataset.raw || wrap.querySelector('.bubble')?.textContent || '';
+    const ok = await copyToClipboard(text);
+    const btn = (evt && evt.target && evt.target.closest('.msg-action-btn')) ||
+                (window.event && window.event.target && window.event.target.closest && window.event.target.closest('.msg-action-btn'));
+    if (btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = ok ? '<span>✅</span> Copied!' : '<span>❌</span> Failed';
+      setTimeout(() => { btn.innerHTML = orig; }, 2000);
     }
   }
 
   function downloadMsg(msgId) {
-    const bubble = document.querySelector('#' + msgId + ' .bubble');
-    if (bubble) {
-      const text = bubble.textContent;
-      const blob = new Blob([text], {type:'text/plain'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'grammar-answer-' + new Date().getTime() + '.txt';
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }
+    const wrap = document.getElementById(msgId);
+    if (!wrap) return;
+    const text = wrap.dataset.raw || wrap.querySelector('.bubble')?.textContent || '';
+    const blob = new Blob([text], {type:'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'grammar-answer-' + new Date().getTime() + '.txt';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 100);
   }
 
   function showTyping() {
@@ -2660,9 +2676,72 @@ Rules:
     navigator.clipboard.writeText(document.getElementById(id).innerText);
   }
 
+  // ====== ANDROID-COMPATIBLE HELPERS ======
+  // AbortSignal.timeout() is Chrome 103+. Use AbortController for older Android.
+  function makeTimeoutSignal(ms) {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), ms);
+    return ctrl.signal;
+  }
+
+  // Safe localStorage — Android private/incognito mode throws on .setItem
+  function lsGet(key, fallback) {
+    try { return localStorage.getItem(key) || (fallback || ''); }
+    catch(e) { return fallback || ''; }
+  }
+  function lsSet(key, value) {
+    try { localStorage.setItem(key, value); return true; }
+    catch(e) { console.warn('localStorage write failed:', e); return false; }
+  }
+  function lsRemove(key) {
+    try { localStorage.removeItem(key); } catch(e) {}
+  }
+
+  // Safe clipboard — falls back to execCommand if clipboard API not available
+  async function copyToClipboard(text) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch(e) { /* fall through */ }
+    // Legacy fallback for older Android / non-HTTPS
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch(e) { return false; }
+  }
+
   function escH(text) {
     if (!text) return '';
     return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Lightweight markdown renderer for chat bubbles — handles bold/italic/underline/strike + lists
+  function renderMd(text) {
+    if (!text) return '';
+    let out = escH(text);
+    // Code spans first to protect them
+    const codes = [];
+    out = out.replace(/`([^`]+)`/g, (m, c) => { codes.push(c); return '\u0000CODE' + (codes.length-1) + '\u0000'; });
+    // Bold: **text** or __text__ for both bold and underline disambiguation
+    // We use *** triple = strong italic, ** = bold, * = italic, __ = underline, _ = italic, ~~ = strike
+    out = out.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    out = out.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    out = out.replace(/__(.+?)__/g, '<u>$1</u>');
+    out = out.replace(/~~(.+?)~~/g, '<s>$1</s>');
+    out = out.replace(/(^|\W)\*(\S(?:.*?\S)?)\*(?=\W|$)/g, '$1<em>$2</em>');
+    out = out.replace(/(^|\W)_(\S(?:.*?\S)?)_(?=\W|$)/g, '$1<em>$2</em>');
+    // Restore code spans
+    out = out.replace(/\u0000CODE(\d+)\u0000/g, (m, i) => '<code style="background:rgba(0,0,0,0.07);padding:1px 5px;border-radius:4px;font-size:0.92em;">' + escH(codes[+i]) + '</code>');
+    return out;
   }
 
   function dlTxt(content, filename) {
@@ -2873,20 +2952,20 @@ Rules:
       let result = '';
       if (provider === 'worker') {
         if (!workerUrl) { badge.textContent = '⬜'; sub.textContent = 'No Worker URL set in Settings'; sub.style.color='var(--muted)'; return false; }
-        const res = await fetch(workerUrl + '/test', { method: 'GET', signal: AbortSignal.timeout(10000) });
+        const res = await fetch(workerUrl + '/test', { method: 'GET', signal: makeTimeoutSignal(10000) });
         const d = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(d.error || ('HTTP ' + res.status));
         result = d.message || 'Connected';
       } else if (workerUrl) {
         // ── Test provider VIA the worker (since keys live there) ──
-        const res = await fetch(workerUrl + '/test/' + provider, { method: 'GET', signal: AbortSignal.timeout(15000) });
+        const res = await fetch(workerUrl + '/test/' + provider, { method: 'GET', signal: makeTimeoutSignal(15000) });
         const d = await res.json().catch(() => ({}));
         if (!d.ok) throw new Error(d.error || 'Provider test failed');
         result = 'Connected via Worker · "' + (d.response || 'ok').slice(0, 40) + '"';
       } else if (provider === 'groq') {
         if (!apiKey) { badge.textContent = '⬜'; sub.textContent = 'No Groq key set (or set Worker URL)'; sub.style.color='var(--muted)'; return false; }
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method:'POST', signal: AbortSignal.timeout(10000),
+          method:'POST', signal: makeTimeoutSignal(10000),
           headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
           body: JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:5,messages:[{role:'user',content:'Hi'}]})
         });
@@ -2897,7 +2976,7 @@ Rules:
       } else if (provider === 'cerebras') {
         if (!cerebrasKey) { badge.textContent = '⬜'; sub.textContent = 'No Cerebras key set (or set Worker URL)'; sub.style.color='var(--muted)'; return false; }
         const res = await fetch('https://api.cerebras.ai/v1/chat/completions', {
-          method:'POST', signal: AbortSignal.timeout(10000),
+          method:'POST', signal: makeTimeoutSignal(10000),
           headers:{'Content-Type':'application/json','Authorization':'Bearer '+cerebrasKey},
           body: JSON.stringify({model:'llama-3.3-70b',max_tokens:5,messages:[{role:'user',content:'Hi'}]})
         });
@@ -2908,9 +2987,9 @@ Rules:
       } else if (provider === 'gemini') {
         if (!geminiKey) { badge.textContent = '⬜'; sub.textContent = 'No Gemini key set (or set Worker URL)'; sub.style.color='var(--muted)'; return false; }
         const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + geminiKey, {
-          method:'POST', signal: AbortSignal.timeout(10000),
+          method:'POST', signal: makeTimeoutSignal(10000),
           headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({contents:[{role:'user',parts:[{text:'Hi'}]}],generationConfig:{maxOutputTokens:5}})
+          body: JSON.stringify({contents:[{role:'user',parts:[{text:'Reply with just: ok'}]}],generationConfig:{maxOutputTokens:200,thinkingConfig:{thinkingBudget:0}}})
         });
         const d = await res.json().catch(() => ({}));
         if (res.status === 400 || res.status === 401) throw new Error('Invalid Gemini API key');
@@ -2938,7 +3017,7 @@ Rules:
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ messages, maxTokens: maxTokens || 1200 }),
-          signal: AbortSignal.timeout(45000)
+          signal: makeTimeoutSignal(45000)
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
@@ -2996,7 +3075,7 @@ Rules:
             role: m.role === 'assistant' ? 'model' : 'user',
             parts: [{text: m.content}]
           }));
-          const body = { contents: geminiMsgs, generationConfig: { maxOutputTokens: mt||1200 } };
+          const body = { contents: geminiMsgs, generationConfig: { maxOutputTokens: mt||1200, thinkingConfig: { thinkingBudget: 0 } } };
           if (systemMsg) body.systemInstruction = { parts: [{text: systemMsg.content}] };
           const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + geminiKey, {
             method: 'POST',
