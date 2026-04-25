@@ -11,12 +11,19 @@
   <link rel="manifest" href="manifest.json"/>
   <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <script>
-    // Service Worker — wait for load + handle errors (Android Chrome safety)
+    // Service Worker — register only when sw.js actually exists & not in preview/iframe
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => {
-          console.warn('SW registration failed (non-fatal):', err.message);
-        });
+      window.addEventListener('load', async () => {
+        // Skip in iframes (preview environments like claudeusercontent.com)
+        if (window.self !== window.top) return;
+        // Skip on file:// protocol
+        if (location.protocol === 'file:') return;
+        // Pre-check if sw.js exists before registering (avoids 404 console warnings)
+        try {
+          const head = await fetch('./sw.js', { method: 'HEAD' });
+          if (!head.ok) return;
+          await navigator.serviceWorker.register('./sw.js');
+        } catch (_) { /* silent — SW is optional */ }
       });
     }
     // Global error handler — prevents silent JS failures on Android
@@ -403,15 +410,20 @@
     <div class="page-scroll">
       <div class="card">
         <h3>Your Paragraph</h3>
-        <textarea class="full" id="para-in" placeholder="Paste or type your paragraph here... No word limit! You can also use the 🎤 microphone to dictate." oninput="updateWC()"></textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+        <textarea class="full" id="para-in" placeholder="Paste or type your paragraph here... No word limit! Or tap Start Voice below to dictate." oninput="updateWC()"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:8px;">
           <span style="font-size:11px;color:var(--muted);" id="wc-label">0 words</span>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div style="display:flex;flex-direction:column;align-items:center;">
-              <button class="voice-btn idle" id="para-mic-btn" onclick="toggleParaMic()">🎤</button>
-              <span class="voice-status" id="para-mic-status"></span>
-            </div>
-          </div>
+          <span class="voice-status" id="para-mic-status" style="font-size:11px;font-weight:500;"></span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button id="para-mic-start" onclick="startParaMicNew()"
+            style="flex:1;padding:11px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 6px rgba(16,185,129,0.3);">
+            🎤 Start Voice
+          </button>
+          <button id="para-mic-stop" onclick="stopParaMicNew()" disabled
+            style="flex:1;padding:11px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 6px rgba(239,68,68,0.3);opacity:0.4;">
+            ⏹ Stop Voice
+          </button>
         </div>
         <div class="btn-row">
           <select class="ctrl" id="para-mode">
@@ -1156,7 +1168,7 @@
                 <span style="font-size:20px;">💎</span>
                 <div>
                   <div style="font-size:13px;font-weight:600;">Gemini</div>
-                  <div style="font-size:11px;color:var(--muted);" id="test-sub-gemini">gemini-2.0-flash</div>
+                  <div style="font-size:11px;color:var(--muted);" id="test-sub-gemini">gemini-2.5-flash</div>
                 </div>
               </div>
               <div style="display:flex;align-items:center;gap:8px;">
@@ -1340,7 +1352,7 @@ Rules:
       const s = document.getElementById('test-sub-' + p);
       if (b) b.textContent = '⬜';
       if (s) {
-        const defaults = { worker: 'Cloudflare Worker endpoint', groq: 'llama-3.3-70b-versatile', cerebras: 'llama-3.3-70b', gemini: 'gemini-2.0-flash' };
+        const defaults = { worker: 'Cloudflare Worker endpoint', groq: 'llama-3.3-70b-versatile', cerebras: 'llama-3.3-70b', gemini: 'gemini-2.5-flash' };
         s.textContent = defaults[p];
         s.style.color = 'var(--muted)';
       }
@@ -1596,73 +1608,112 @@ Rules:
   }
 
   // ====== PARAGRAPH VOICE INPUT ======
-  let paraRecognition = null;
-  let paraListening = false;
+  let paraRecognition  = null;
+  let paraListening    = false;
+  let paraFinalText    = '';      // committed (finalized) text only — never re-read from textarea
+  let paraRestartTimer = null;
 
+  // Legacy alias for backward compatibility
   function toggleParaMic() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Voice input is not supported on this browser. Please use Chrome or Safari.');
-      return;
-    }
-    if (paraListening) {
-      stopParaMic();
-    } else {
-      startParaMic();
-    }
+    if (paraListening) stopParaMicNew(); else startParaMicNew();
   }
 
-  function startParaMic() {
+  function startParaMicNew() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice input is not supported on this browser.\nPlease use Chrome on Android or desktop.');
+      return;
+    }
+    if (paraListening) return;
+
+    // Snapshot existing textarea content as committed base
+    paraFinalText = document.getElementById('para-in').value;
+    if (paraFinalText && !paraFinalText.endsWith(' ')) paraFinalText += ' ';
+    paraListening = true;
+
+    setMicUI(true, '🎙 Listening...');
+    _startParaRecognizer();
+  }
+
+  function _startParaRecognizer() {
+    clearTimeout(paraRestartTimer);
+    if (paraRecognition) { try { paraRecognition.abort(); } catch(e){} paraRecognition = null; }
+
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     paraRecognition = new SR();
-    paraRecognition.continuous = true;
+    paraRecognition.continuous     = true;
     paraRecognition.interimResults = true;
-    paraRecognition.lang = 'en-IN';
+    paraRecognition.lang           = 'en-IN';
+    paraRecognition.maxAlternatives = 1;
 
-    const btn = document.getElementById('para-mic-btn');
-    const status = document.getElementById('para-mic-status');
     const textarea = document.getElementById('para-in');
-    let existingText = textarea.value;
-    if (existingText && !existingText.endsWith(' ')) existingText += ' ';
 
-    paraRecognition.onstart = () => {
-      paraListening = true;
-      btn.className = 'voice-btn listening';
-      btn.textContent = '🔴';
-      status.textContent = 'Listening...';
-      status.className = 'voice-status active';
-    };
+    paraRecognition.onstart = () => setMicUI(true, '🎙 Listening...');
 
     paraRecognition.onresult = (e) => {
       let interim = '';
-      let final = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) final += e.results[i][0].transcript + ' ';
-        else interim += e.results[i][0].transcript;
+        if (e.results[i].isFinal) {
+          paraFinalText += e.results[i][0].transcript + ' ';
+        } else {
+          interim += e.results[i][0].transcript;
+        }
       }
-      if (final) existingText += final;
-      textarea.value = existingText + interim;
+      textarea.value = paraFinalText + interim;
       updateWC();
     };
 
     paraRecognition.onerror = (e) => {
-      stopParaMic();
-      if (e.error !== 'aborted') status.textContent = 'Error: ' + e.error;
+      if (e.error === 'no-speech' || e.error === 'aborted') return;
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        setMicUI(false, '');
+        paraListening = false;
+        alert('Microphone permission denied.\nAllow mic access in your browser settings.');
+        return;
+      }
+      setMicUI(true, '⚠ ' + e.error + ' — retrying...');
     };
 
-    paraRecognition.onend = () => { if (paraListening) stopParaMic(); };
-    paraRecognition.start();
+    paraRecognition.onend = () => {
+      if (!paraListening) return;
+      // Auto-restart after silence (Android Chrome stops every ~7s)
+      setMicUI(true, '🔄 Reconnecting...');
+      paraRestartTimer = setTimeout(() => {
+        if (paraListening) _startParaRecognizer();
+      }, 350);
+    };
+
+    try { paraRecognition.start(); } catch(e) { /* already starting */ }
   }
 
-  function stopParaMic() {
+  function stopParaMicNew() {
     paraListening = false;
-    if (paraRecognition) { try { paraRecognition.stop(); } catch(e){} paraRecognition = null; }
-    const btn = document.getElementById('para-mic-btn');
-    const status = document.getElementById('para-mic-status');
-    btn.className = 'voice-btn idle';
-    btn.textContent = '🎤';
-    status.textContent = '';
-    status.className = 'voice-status';
+    clearTimeout(paraRestartTimer);
+    if (paraRecognition) { try { paraRecognition.abort(); } catch(e){} paraRecognition = null; }
+    document.getElementById('para-in').value = paraFinalText.trimEnd();
+    setMicUI(false, '✅ Voice stopped');
     updateWC();
+    setTimeout(() => {
+      const status = document.getElementById('para-mic-status');
+      if (status && !paraListening) status.textContent = '';
+    }, 2000);
+  }
+  // Legacy aliases for any existing code
+  function startParaMic() { startParaMicNew(); }
+  function stopParaMic()  { stopParaMicNew();  }
+
+  function setMicUI(isOn, statusText) {
+    const startBtn = document.getElementById('para-mic-start');
+    const stopBtn  = document.getElementById('para-mic-stop');
+    const status   = document.getElementById('para-mic-status');
+    if (isOn) {
+      if (startBtn) { startBtn.disabled = true; startBtn.style.opacity = '0.4'; startBtn.innerHTML = '🎙 Recording...'; }
+      if (stopBtn)  { stopBtn.disabled  = false; stopBtn.style.opacity  = '1'; stopBtn.style.animation = 'pulse-mic 1.5s infinite'; }
+      if (status)   { status.textContent = statusText || '🎙 Listening...'; status.style.color = '#dc2626'; status.style.fontWeight = '600'; }
+    } else {
+      if (startBtn) { startBtn.disabled = false; startBtn.style.opacity = '1'; startBtn.innerHTML = '🎤 Start Voice'; }
+      if (stopBtn)  { stopBtn.disabled  = true;  stopBtn.style.opacity  = '0.4'; stopBtn.style.animation = ''; }
+      if (status)   { status.textContent = statusText || ''; status.style.color = 'var(--green)'; }
+    }
   }
 
   function speakPara() {
@@ -2856,7 +2907,7 @@ Rules:
         result = 'Connected · llama-3.3-70b';
       } else if (provider === 'gemini') {
         if (!geminiKey) { badge.textContent = '⬜'; sub.textContent = 'No Gemini key set (or set Worker URL)'; sub.style.color='var(--muted)'; return false; }
-        const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + geminiKey, {
+        const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + geminiKey, {
           method:'POST', signal: AbortSignal.timeout(10000),
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify({contents:[{role:'user',parts:[{text:'Hi'}]}],generationConfig:{maxOutputTokens:5}})
@@ -2864,7 +2915,7 @@ Rules:
         const d = await res.json().catch(() => ({}));
         if (res.status === 400 || res.status === 401) throw new Error('Invalid Gemini API key');
         if (!res.ok) throw new Error(d?.error?.message || ('HTTP ' + res.status));
-        result = 'Connected · gemini-2.0-flash';
+        result = 'Connected · gemini-2.5-flash';
       }
       badge.textContent = '✅';
       sub.textContent = result;
@@ -2947,7 +2998,7 @@ Rules:
           }));
           const body = { contents: geminiMsgs, generationConfig: { maxOutputTokens: mt||1200 } };
           if (systemMsg) body.systemInstruction = { parts: [{text: systemMsg.content}] };
-          const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + geminiKey, {
+          const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + geminiKey, {
             method: 'POST',
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify(body)
