@@ -1,27 +1,45 @@
 {
   "name": "Grammar AI Agent",
   "short_name": "Grammar AI",
-  "description": "English Grammar AI Agent — Hindi & English support by Nik",
+  "description": "AI-powered English grammar tutor by Nik — Chat, Paragraph, Exercises, Flashcards, Notes and more.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#1a1a2e",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
   "theme_color": "#1a1a2e",
-  "orientation": "portrait-primary",
+  "lang": "en-IN",
+  "categories": ["education", "productivity"],
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["education", "productivity"],
-  "lang": "en",
-  "dir": "ltr"
+  "screenshots": [],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Chat",
+      "short_name": "Chat",
+      "description": "Open grammar chat",
+      "url": "./index.html#chat",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Paragraph",
+      "short_name": "Paragraph",
+      "description": "Correct a paragraph",
+      "url": "./index.html#para",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
 }

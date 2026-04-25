@@ -9,7 +9,23 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <link rel="manifest" href="manifest.json"/>
-  <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');</script>
+  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
+  <script>
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+    // PWA Install prompt — capture early before any user gesture
+    let _deferredInstall = null;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      _deferredInstall = e;
+      const btn = document.getElementById('btn-install');
+      if (btn) { btn.style.display = 'flex'; }
+    });
+    window.addEventListener('appinstalled', () => {
+      _deferredInstall = null;
+      const btn = document.getElementById('btn-install');
+      if (btn) btn.style.display = 'none';
+    });
+  </script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
     :root{
@@ -211,6 +227,8 @@
     .loading{text-align:center;padding:24px;color:var(--muted);font-size:13px;}
     ::-webkit-scrollbar{width:3px;}
     ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px;}
+    /* TEST ROW */
+    .test-row{padding:12px;background:#f8fafc;border:1.5px solid var(--border);border-radius:10px;}
 
     /* NOTE EXTRAS */
     .note-date{font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:500;}
@@ -268,6 +286,12 @@
         <button id="btn-en" class="active" onclick="setLang('en')">EN</button>
         <button id="btn-hi" onclick="setLang('hi')">HI</button>
       </div>
+      <!-- PWA Install — hidden until beforeinstallprompt fires -->
+      <button id="btn-install" onclick="triggerInstall()" title="Install App"
+        style="display:none;align-items:center;gap:5px;padding:5px 10px;border:none;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">
+        ⬇ Install app
+      </button>
+      <button onclick="showPage('settings')" style="padding:5px 10px;border:none;border-radius:8px;background:rgba(255,255,255,0.15);color:#fff;font-size:16px;cursor:pointer;font-family:inherit;" title="Settings">⚙️</button>
       <button onclick="changeKey()" style="padding:5px 10px;border:none;border-radius:8px;background:rgba(255,255,255,0.15);color:#fff;font-size:11px;cursor:pointer;font-family:inherit;" title="Change API Key">🔑 Key</button>
     </div>
   </div>
@@ -967,6 +991,151 @@
     </div>
   </div>
 
+  <!-- ===== SETTINGS PAGE ===== -->
+  <div class="page" id="page-settings">
+    <div class="page-scroll">
+
+      <!-- ☁️ Cloudflare Worker Proxy -->
+      <div class="card">
+        <h3>☁️ Cloudflare Worker Proxy</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;">Host your API keys on a Cloudflare Worker — no keys stored on device. Deploy <code style="background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:11px;">worker.js</code> to Cloudflare and paste the URL below.</p>
+        <div style="margin-bottom:8px;">
+          <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Worker URL</label>
+          <input id="worker-url-inp" type="url" placeholder="https://grammar-proxy.YOUR-NAME.workers.dev"
+            style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;outline:none;background:#f8fafc;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn-primary" onclick="saveWorkerUrl()" style="flex:1;font-size:13px;padding:10px;">Save URL</button>
+          <button class="btn-secondary" onclick="clearWorkerUrl()" style="font-size:13px;padding:10px;">Clear</button>
+        </div>
+        <div id="worker-url-status" style="margin-top:8px;font-size:12px;display:none;padding:8px 12px;border-radius:8px;"></div>
+        <div style="margin-top:10px;padding:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:11px;color:#065f46;line-height:1.7;">
+          <strong>📋 Worker Setup:</strong><br>
+          1. Go to <strong>dash.cloudflare.com</strong> → Workers &amp; Pages → Create<br>
+          2. Paste the <code>worker.js</code> code (provided in download)<br>
+          3. Add secrets: <code>GROQ_KEY</code>, <code>CEREBRAS_KEY</code>, <code>GEMINI_KEY</code><br>
+          4. Copy your worker URL and paste it above
+        </div>
+      </div>
+
+      <!-- 🔌 Test Connections -->
+      <div class="card">
+        <h3>🔌 Test Connections</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Test each provider in sequence. Worker is tested first, then direct keys.</p>
+        <div style="display:flex;flex-direction:column;gap:8px;" id="test-results">
+          <!-- Worker row -->
+          <div class="test-row" id="test-row-worker">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:20px;">☁️</span>
+                <div>
+                  <div style="font-size:13px;font-weight:600;">Worker Proxy</div>
+                  <div style="font-size:11px;color:var(--muted);" id="test-sub-worker">Cloudflare Worker endpoint</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span id="test-badge-worker" style="font-size:18px;">⬜</span>
+                <button onclick="runSingleTest('worker')" class="btn-secondary" style="font-size:11px;padding:6px 12px;">Test</button>
+              </div>
+            </div>
+          </div>
+          <!-- Groq row -->
+          <div class="test-row" id="test-row-groq">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:20px;">⚡</span>
+                <div>
+                  <div style="font-size:13px;font-weight:600;">Groq</div>
+                  <div style="font-size:11px;color:var(--muted);" id="test-sub-groq">llama-3.3-70b-versatile</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span id="test-badge-groq" style="font-size:18px;">⬜</span>
+                <button onclick="runSingleTest('groq')" class="btn-secondary" style="font-size:11px;padding:6px 12px;">Test</button>
+              </div>
+            </div>
+          </div>
+          <!-- Cerebras row -->
+          <div class="test-row" id="test-row-cerebras">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:20px;">🧠</span>
+                <div>
+                  <div style="font-size:13px;font-weight:600;">Cerebras</div>
+                  <div style="font-size:11px;color:var(--muted);" id="test-sub-cerebras">llama-3.3-70b</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span id="test-badge-cerebras" style="font-size:18px;">⬜</span>
+                <button onclick="runSingleTest('cerebras')" class="btn-secondary" style="font-size:11px;padding:6px 12px;">Test</button>
+              </div>
+            </div>
+          </div>
+          <!-- Gemini row -->
+          <div class="test-row" id="test-row-gemini">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:20px;">💎</span>
+                <div>
+                  <div style="font-size:13px;font-weight:600;">Gemini</div>
+                  <div style="font-size:11px;color:var(--muted);" id="test-sub-gemini">gemini-2.0-flash</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span id="test-badge-gemini" style="font-size:18px;">⬜</span>
+                <button onclick="runSingleTest('gemini')" class="btn-secondary" style="font-size:11px;padding:6px 12px;">Test</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="runAllTests()" id="btn-run-all-tests" style="width:100%;margin-top:14px;">
+          ▶ Run All Tests
+        </button>
+        <div id="test-summary" style="margin-top:10px;font-size:12px;color:var(--muted);text-align:center;display:none;"></div>
+      </div>
+
+      <!-- 🔑 API Keys -->
+      <div class="card">
+        <h3>🔑 Direct API Keys</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;">Used when no Worker URL is set. Keys are stored only on this device.</p>
+        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Groq Key <span style="font-weight:400;color:#aaa;">(console.groq.com)</span></label>
+        <input id="sett-groq" type="password" placeholder="gsk_..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;background:#f8fafc;" />
+        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Cerebras Key <span style="font-weight:400;color:#aaa;">(cloud.cerebras.ai)</span></label>
+        <input id="sett-cerebras" type="password" placeholder="csk_..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;background:#f8fafc;" />
+        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Gemini Key <span style="font-weight:400;color:#aaa;">(aistudio.google.com/apikey)</span></label>
+        <input id="sett-gemini" type="password" placeholder="AIza..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;background:#f8fafc;" />
+        <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px;">Mistral Key <span style="font-weight:400;color:#aaa;">(console.mistral.ai)</span></label>
+        <input id="sett-mistral" type="password" placeholder="..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;margin-bottom:12px;outline:none;font-family:inherit;background:#f8fafc;" />
+        <button class="btn-primary" onclick="saveSettingsKeys()" style="width:100%;">💾 Save Keys</button>
+        <p style="font-size:11px;color:#94a3b8;text-align:center;margin-top:8px;">Keys stored only on your device · Never sent to our servers</p>
+      </div>
+
+      <!-- 📱 PWA Install -->
+      <div class="card" id="pwa-install-card">
+        <h3>📱 Install App</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;">Install Grammar AI as a native-like app on your Android phone for offline access and a full-screen experience.</p>
+        <button id="btn-install-settings" onclick="triggerInstall()"
+          style="width:100%;padding:12px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;">
+          ⬇ Install App on This Device
+        </button>
+        <p style="font-size:11px;color:#94a3b8;text-align:center;margin-top:8px;">Open in Chrome on Android → the install prompt will appear above</p>
+      </div>
+
+      <!-- ℹ️ About -->
+      <div class="card" style="text-align:center;">
+        <div style="font-size:32px;margin-bottom:8px;">🎓</div>
+        <div style="font-size:15px;font-weight:700;color:var(--dark);">Grammar AI Agent</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">by Nik · PWA v1.0</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:6px;line-height:1.7;">Powered by Groq · Cerebras · Gemini · Mistral<br>Hosted on GitHub Pages · Proxy via Cloudflare Workers</div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <button onclick="clearAllData()" style="font-size:12px;color:var(--red);border:1px solid #fca5a5;background:#fff8f8;border-radius:8px;padding:7px 16px;cursor:pointer;font-family:inherit;">🗑 Clear All App Data</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <div id="bottomnav">
@@ -977,6 +1146,7 @@
   <button class="bnav-btn"        id="bn-translator" onclick="showPage('translator')"><span class="bi">🔄</span>Translate</button>
   <button class="bnav-btn"        id="bn-notes"      onclick="showPage('notes')">     <span class="bi">📋</span>Notes</button>
   <button class="bnav-btn"        id="bn-copilot"    onclick="showPage('copilot')">   <span class="bi">🔷</span>Copilot</button>
+  <button class="bnav-btn"        id="bn-settings"   onclick="showPage('settings')">  <span class="bi">⚙️</span>Settings</button>
 </div>
 
 <script>
@@ -984,6 +1154,7 @@
   let cerebrasKey = localStorage.getItem('grammar_cerebras_key') || '';
   let geminiKey = localStorage.getItem('grammar_gemini_key') || '';
   let mistralKey = localStorage.getItem('grammar_mistral_key') || '';
+  let workerUrl = (localStorage.getItem('grammar_worker_url') || '').replace(/\/$/, '');
   // Track rate-limit cooldowns per provider
   const providerCooldown = { groq: 0, cerebras: 0, gemini: 0, mistral: 0 };
   let chatHistory = [];
@@ -1038,7 +1209,13 @@ Rules:
   function updateTopbarSub() {
     const count = [apiKey, cerebrasKey, geminiKey, mistralKey].filter(Boolean).length;
     const el = document.getElementById('topbar-sub');
-    if (el) el.textContent = 'by Nik — ' + count + ' AI Provider' + (count > 1 ? 's' : '');
+    if (el) {
+      if (workerUrl) {
+        el.textContent = 'by Nik — ☁️ Worker Proxy';
+      } else {
+        el.textContent = 'by Nik — ' + count + ' AI Provider' + (count > 1 ? 's' : '');
+      }
+    }
   }
 
   function changeKey() {
@@ -1089,6 +1266,35 @@ Rules:
     document.getElementById('page-' + page).classList.add('active');
     document.getElementById('bn-' + page).classList.add('active');
     if (page === 'notes') renderNotes(document.getElementById('notes-search')?.value || '');
+    if (page === 'settings') populateSettingsPage();
+  }
+
+  function populateSettingsPage() {
+    const wu = document.getElementById('worker-url-inp');
+    if (wu && !wu.value) wu.value = workerUrl;
+    const sg = document.getElementById('sett-groq');
+    const sc = document.getElementById('sett-cerebras');
+    const sgm = document.getElementById('sett-gemini');
+    const sm = document.getElementById('sett-mistral');
+    if (sg && !sg.value) sg.value = apiKey;
+    if (sc && !sc.value) sc.value = cerebrasKey;
+    if (sgm && !sgm.value) sgm.value = geminiKey;
+    if (sm && !sm.value) sm.value = mistralKey;
+    // Show/hide install card based on prompt availability
+    const ic = document.getElementById('pwa-install-card');
+    if (ic) ic.style.display = _deferredInstall ? 'block' : 'none';
+    // Reset test badges
+    ['worker','groq','cerebras','gemini'].forEach(p => {
+      const b = document.getElementById('test-badge-' + p);
+      const s = document.getElementById('test-sub-' + p);
+      if (b) b.textContent = '⬜';
+      if (s) {
+        const defaults = { worker: 'Cloudflare Worker endpoint', groq: 'llama-3.3-70b-versatile', cerebras: 'llama-3.3-70b', gemini: 'gemini-2.0-flash' };
+        s.textContent = defaults[p];
+        s.style.color = 'var(--muted)';
+      }
+    });
+    document.getElementById('test-summary').style.display = 'none';
   }
 
   function showSub(sub) {
@@ -2319,8 +2525,176 @@ Rules:
     URL.revokeObjectURL(a.href);
   }
 
+  // ====== PWA INSTALL ======
+  function triggerInstall() {
+    if (_deferredInstall) {
+      _deferredInstall.prompt();
+      _deferredInstall.userChoice.then(r => {
+        if (r.outcome === 'accepted') {
+          _deferredInstall = null;
+          document.getElementById('btn-install').style.display = 'none';
+        }
+      });
+    } else {
+      alert('ℹ️ To install:\n1. Open this page in Chrome on Android\n2. Tap the menu (⋮) → "Add to Home screen"\n\nOr wait — Chrome will show the install banner automatically.');
+    }
+  }
+
+  // ====== SETTINGS — WORKER URL ======
+  function saveWorkerUrl() {
+    const val = (document.getElementById('worker-url-inp').value || '').trim().replace(/\/$/, '');
+    const status = document.getElementById('worker-url-status');
+    if (val && !val.startsWith('https://')) {
+      status.textContent = '❌ URL must start with https://';
+      status.style.cssText = 'display:block;background:#fee2e2;color:#991b1b;';
+      return;
+    }
+    workerUrl = val;
+    if (val) {
+      localStorage.setItem('grammar_worker_url', val);
+      status.textContent = '✅ Worker URL saved! API calls will now route through your proxy.';
+      status.style.cssText = 'display:block;background:#d1fae5;color:#065f46;';
+    } else {
+      localStorage.removeItem('grammar_worker_url');
+      status.textContent = '⚠️ Worker URL cleared. Using direct API keys.';
+      status.style.cssText = 'display:block;background:#fef3c7;color:#92400e;';
+    }
+    updateTopbarSub();
+    setTimeout(() => { status.style.display = 'none'; }, 4000);
+  }
+
+  function clearWorkerUrl() {
+    document.getElementById('worker-url-inp').value = '';
+    workerUrl = '';
+    localStorage.removeItem('grammar_worker_url');
+    const status = document.getElementById('worker-url-status');
+    status.textContent = '⚠️ Worker URL cleared. App will use direct API keys.';
+    status.style.cssText = 'display:block;background:#fef3c7;color:#92400e;';
+    updateTopbarSub();
+    setTimeout(() => { status.style.display = 'none'; }, 3000);
+  }
+
+  // ====== SETTINGS — API KEYS ======
+  function saveSettingsKeys() {
+    const k  = (document.getElementById('sett-groq').value || '').trim();
+    const kC = (document.getElementById('sett-cerebras').value || '').trim();
+    const kG = (document.getElementById('sett-gemini').value || '').trim();
+    const kM = (document.getElementById('sett-mistral').value || '').trim();
+    if (k)  { apiKey = k; localStorage.setItem('grammar_key', k); }
+    else    { apiKey = ''; localStorage.removeItem('grammar_key'); }
+    if (kC) { cerebrasKey = kC; localStorage.setItem('grammar_cerebras_key', kC); }
+    else    { cerebrasKey = ''; localStorage.removeItem('grammar_cerebras_key'); }
+    if (kG) { geminiKey = kG; localStorage.setItem('grammar_gemini_key', kG); }
+    else    { geminiKey = ''; localStorage.removeItem('grammar_gemini_key'); }
+    if (kM) { mistralKey = kM; localStorage.setItem('grammar_mistral_key', kM); }
+    else    { mistralKey = ''; localStorage.removeItem('grammar_mistral_key'); }
+    updateTopbarSub();
+    alert('✅ Keys saved successfully!');
+  }
+
+  // ====== SETTINGS — CLEAR ALL ======
+  function clearAllData() {
+    if (!confirm('⚠️ This will delete ALL data — keys, notes, settings. Are you sure?')) return;
+    localStorage.clear();
+    location.reload();
+  }
+
+  // ====== SETTINGS — TEST CONNECTIONS ======
+  async function runAllTests() {
+    const btn = document.getElementById('btn-run-all-tests');
+    btn.disabled = true;
+    btn.textContent = '⏳ Testing...';
+    const summary = document.getElementById('test-summary');
+    summary.style.display = 'none';
+    let passed = 0, total = 0;
+    for (const p of ['worker','groq','cerebras','gemini']) {
+      total++;
+      const ok = await runSingleTest(p);
+      if (ok) passed++;
+      await new Promise(r => setTimeout(r, 300));
+    }
+    btn.disabled = false;
+    btn.textContent = '▶ Run All Tests';
+    summary.style.display = 'block';
+    summary.textContent = passed + '/' + total + ' providers connected' + (passed === total ? ' 🎉' : ' — configure missing ones above');
+    summary.style.color = passed > 0 ? 'var(--green)' : 'var(--red)';
+  }
+
+  async function runSingleTest(provider) {
+    const badge = document.getElementById('test-badge-' + provider);
+    const sub   = document.getElementById('test-sub-' + provider);
+    badge.textContent = '⏳';
+    sub.textContent = 'Testing...';
+    sub.style.color = 'var(--muted)';
+    try {
+      let result = '';
+      if (provider === 'worker') {
+        if (!workerUrl) { badge.textContent = '⬜'; sub.textContent = 'No Worker URL set'; sub.style.color='var(--muted)'; return false; }
+        const res = await fetch(workerUrl + '/test', { method: 'GET', signal: AbortSignal.timeout(8000) });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const d = await res.json();
+        result = d.message || 'Connected';
+      } else if (provider === 'groq') {
+        if (!apiKey) { badge.textContent = '⬜'; sub.textContent = 'No Groq key set'; sub.style.color='var(--muted)'; return false; }
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method:'POST', signal: AbortSignal.timeout(8000),
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+          body: JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:5,messages:[{role:'user',content:'Hi'}]})
+        });
+        if (res.status === 401) throw new Error('Invalid API key');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        result = 'Connected · llama-3.3-70b';
+      } else if (provider === 'cerebras') {
+        if (!cerebrasKey) { badge.textContent = '⬜'; sub.textContent = 'No Cerebras key set'; sub.style.color='var(--muted)'; return false; }
+        const res = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+          method:'POST', signal: AbortSignal.timeout(8000),
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+cerebrasKey},
+          body: JSON.stringify({model:'llama-3.3-70b',max_tokens:5,messages:[{role:'user',content:'Hi'}]})
+        });
+        if (res.status === 401) throw new Error('Invalid API key');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        result = 'Connected · llama-3.3-70b';
+      } else if (provider === 'gemini') {
+        if (!geminiKey) { badge.textContent = '⬜'; sub.textContent = 'No Gemini key set'; sub.style.color='var(--muted)'; return false; }
+        const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + geminiKey, {
+          method:'POST', signal: AbortSignal.timeout(8000),
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({contents:[{role:'user',parts:[{text:'Hi'}]}],generationConfig:{maxOutputTokens:5}})
+        });
+        if (res.status === 400 || res.status === 401) throw new Error('Invalid API key');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        result = 'Connected · gemini-2.0-flash';
+      }
+      badge.textContent = '✅';
+      sub.textContent = result;
+      sub.style.color = 'var(--green)';
+      return true;
+    } catch(err) {
+      badge.textContent = '❌';
+      sub.textContent = err.message || 'Connection failed';
+      sub.style.color = 'var(--red)';
+      return false;
+    }
+  }
+
   // ====== MULTI-PROVIDER AI ======
   async function callAI(messages, maxTokens) {
+    // ── Route through Cloudflare Worker proxy if URL is set ──
+    if (workerUrl) {
+      const res = await fetch(workerUrl + '/api/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ messages, maxTokens: maxTokens || 1200 })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Worker error: HTTP ' + res.status);
+      }
+      const data = await res.json();
+      return data.text;
+    }
+
+    // ── Direct provider fallback ──
     const now = Date.now();
     const providers = [
       {
@@ -2357,7 +2731,6 @@ Rules:
         name: 'gemini', key: geminiKey,
         available: !!geminiKey && now > providerCooldown.gemini,
         call: async (msgs, mt) => {
-          // Convert OpenAI-style messages to Gemini format
           const systemMsg = msgs.find(m => m.role === 'system');
           const userMsgs = msgs.filter(m => m.role !== 'system');
           const geminiMsgs = userMsgs.map(m => ({
@@ -2396,7 +2769,6 @@ Rules:
 
     const available = providers.filter(p => p.available);
     if (!available.length) {
-      // Find when the next provider resets
       const nextReset = Math.min(...providers.filter(p => p.key).map(p => providerCooldown[p.name]));
       const waitSecs = Math.max(0, Math.ceil((nextReset - Date.now()) / 1000));
       throw new Error('All AI providers are rate limited. Please wait ~' + waitSecs + 's and try again.');
@@ -2407,8 +2779,8 @@ Rules:
         const result = await provider.call(messages, maxTokens);
         return result;
       } catch(e) {
-        if (e.message === 'rate_limit') { continue; } // try next
-        throw e; // real error, don't retry
+        if (e.message === 'rate_limit') { continue; }
+        throw e;
       }
     }
     throw new Error('All available AI providers failed. Please try again shortly.');
