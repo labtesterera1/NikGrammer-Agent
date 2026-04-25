@@ -1,30 +1,35 @@
 // ===== Grammar AI — Service Worker =====
-// Cache name — bump version to force update
-const CACHE = 'grammar-ai-v1';
+// Strategy:
+//   • HTML  → NETWORK-FIRST  (always check for updates; cache only as offline fallback)
+//   • Other → CACHE-FIRST    (icons, manifest — fine to serve cached)
+// This means new index.html pushes to GitHub Pages are picked up
+// on the next page load instead of being stuck in cache.
 
-// Files to pre-cache on install (app shell)
+const VERSION = 'v2';                    // ← Bump this each time you ship a meaningful change
+const CACHE   = 'grammar-ai-' + VERSION;
+
 const PRECACHE = [
-  './',
-  './index.html',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
 
-// ── Install: pre-cache app shell ──
+// ── Install ────────────────────────────────────────────────
 self.addEventListener('install', event => {
+  // Activate new SW immediately on install (don't wait for old SW to release)
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE).then(cache => {
-      return cache.addAll(PRECACHE).catch(err => {
-        // Non-fatal — icons may not exist yet, skip gracefully
-        console.warn('[SW] Pre-cache partial failure:', err);
-        return cache.add('./index.html');
-      });
-    }).then(() => self.skipWaiting())
+      return Promise.all(
+        PRECACHE.map(url =>
+          cache.add(url).catch(err => console.warn('[SW] precache skipped:', url, err.message))
+        )
+      );
+    })
   );
 });
 
-// ── Activate: delete old caches ──
+// ── Activate ───────────────────────────────────────────────
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -33,12 +38,14 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ── Fetch: network-first for API calls, cache-first for app shell ──
+// ── Fetch ──────────────────────────────────────────────────
 self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
+  const req = event.request;
+  if (req.method !== 'GET') return;
 
-  // Always skip non-GET and cross-origin API calls (Groq, Cerebras, Gemini, Workers)
-  if (event.request.method !== 'GET') return;
+  const url = new URL(req.url);
+
+  // Never intercept cross-origin API calls
   if (
     url.hostname.includes('groq.com')        ||
     url.hostname.includes('cerebras.ai')     ||
@@ -47,33 +54,45 @@ self.addEventListener('fetch', event => {
     url.hostname.includes('workers.dev')
   ) return;
 
-  // For same-origin HTML/CSS/JS/images — cache-first with network fallback
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
+  // ── HTML / navigation: NETWORK-FIRST ─────────────────────
+  // Always try the network so new deploys are picked up immediately.
+  // Fall back to cache only if offline.
+  const isHTML = req.mode === 'navigate' ||
+                 req.destination === 'document' ||
+                 url.pathname.endsWith('.html') ||
+                 url.pathname === '/' ||
+                 url.pathname.endsWith('/');
 
-      return fetch(event.request).then(response => {
-        // Only cache valid same-origin responses
-        if (
-          response &&
-          response.status === 200 &&
-          response.type === 'basic'
-        ) {
-          const clone = response.clone();
-          caches.open(CACHE).then(cache => cache.put(event.request, clone));
+  if (isHTML) {
+    event.respondWith(
+      fetch(req).then(res => {
+        // Update cache copy in background for offline support
+        if (res && res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(req, clone)).catch(() => {});
         }
-        return response;
-      }).catch(() => {
-        // Offline fallback — serve index.html for navigation requests
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
+        return res;
+      }).catch(() => caches.match(req).then(c => c || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // ── Other assets: CACHE-FIRST ────────────────────────────
+  event.respondWith(
+    caches.match(req).then(cached => {
+      if (cached) return cached;
+      return fetch(req).then(res => {
+        if (res && res.status === 200 && res.type === 'basic') {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(req, clone)).catch(() => {});
         }
+        return res;
       });
     })
   );
 });
 
-// ── Background sync (future use) ──
-self.addEventListener('sync', event => {
-  console.log('[SW] Background sync:', event.tag);
+// ── Allow page to trigger immediate update via postMessage ──
+self.addEventListener('message', event => {
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });

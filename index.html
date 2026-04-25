@@ -8,21 +8,41 @@
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <!-- Cache busting: tell browsers not to cache the HTML itself (sw.js handles offline) -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
   <link rel="manifest" href="manifest.json"/>
   <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <script>
-    // Service Worker — register only when sw.js actually exists & not in preview/iframe
+    // Service Worker — register with auto-update (skip in preview/iframe)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
-        // Skip in iframes (preview environments like claudeusercontent.com)
-        if (window.self !== window.top) return;
-        // Skip on file:// protocol
-        if (location.protocol === 'file:') return;
-        // Pre-check if sw.js exists before registering (avoids 404 console warnings)
+        if (window.self !== window.top) return;          // skip iframes
+        if (location.protocol === 'file:') return;       // skip file://
         try {
-          const head = await fetch('./sw.js', { method: 'HEAD' });
+          const head = await fetch('./sw.js', { method: 'HEAD', cache: 'no-store' });
           if (!head.ok) return;
-          await navigator.serviceWorker.register('./sw.js');
+          const reg = await navigator.serviceWorker.register('./sw.js');
+          // Force update check on every page load
+          reg.update().catch(() => {});
+          // When a new SW is installed and waiting, auto-skip to it
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                newWorker.postMessage('SKIP_WAITING');
+              }
+            });
+          });
+          // When the active SW changes (new version takes over), reload once
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return;
+            refreshing = true;
+            window.location.reload();
+          });
         } catch (_) { /* silent — SW is optional */ }
       });
     }
@@ -114,12 +134,17 @@
     #chat-toolbar::-webkit-scrollbar{display:none;}
     .format-btn{width:36px;height:36px;border:1.5px solid var(--border);border-radius:8px;background:#f8fafc;color:var(--muted);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;font-family:inherit;}
     .format-btn:active{background:var(--accent);color:#fff;border-color:var(--accent);}
+    .format-btn.danger:active{background:var(--red);border-color:var(--red);color:#fff;}
     .divider-toolbar{width:1px;height:24px;background:var(--border);margin:0 4px;}
-    #emoji-picker-container{position:absolute;bottom:60px;right:12px;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 -4px 16px rgba(0,0,0,0.15);display:none;z-index:100;padding:8px;max-height:200px;overflow-y:auto;width:280px;}
+    /* Emoji picker — full width on mobile, fixed position above input row */
+    #emoji-picker-container{position:absolute;bottom:108px;left:8px;right:8px;background:#fff;border:1.5px solid var(--border);border-radius:14px;box-shadow:0 -4px 24px rgba(0,0,0,0.18);display:none;z-index:100;padding:10px;max-height:240px;overflow-y:auto;}
     #emoji-picker-container.show{display:block;}
-    .emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;}
-    .emoji-btn{width:32px;height:32px;border:none;background:transparent;font-size:20px;cursor:pointer;border-radius:6px;transition:background 0.15s;}
-    .emoji-btn:hover{background:#f1f5f9;}
+    .emoji-cat{font-size:11px;font-weight:600;color:var(--muted);margin:8px 2px 4px;letter-spacing:0.3px;text-transform:uppercase;}
+    .emoji-cat:first-child{margin-top:0;}
+    .emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;}
+    @media (max-width:380px){.emoji-grid{grid-template-columns:repeat(7,1fr);}}
+    .emoji-btn{aspect-ratio:1;border:none;background:transparent;font-size:22px;cursor:pointer;border-radius:6px;transition:background 0.15s;padding:0;display:flex;align-items:center;justify-content:center;}
+    .emoji-btn:active{background:#f1f5f9;}
     #chat-input-row{padding:8px 12px;background:#fff;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 8px rgba(0,0,0,0.04);position:relative;}
     #chat-inp{flex:1;padding:11px 16px;border:1.5px solid var(--border);border-radius:24px;font-size:14px;font-family:inherit;resize:none;min-height:42px;max-height:110px;outline:none;line-height:1.5;background:#f8fafc;transition:all 0.15s;}
     #chat-inp:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(99,102,241,0.1);}
@@ -354,29 +379,59 @@
       <button class="quick-chip" onclick="useQ('When to use a an the?')">Articles</button>
     </div>
     <div id="msg-list"></div>
-    <!-- Emoji Picker -->
+    <!-- Emoji Picker — Categorized -->
     <div id="emoji-picker-container">
-      <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--muted);">Pick an emoji</div>
-      <div class="emoji-grid" id="emoji-grid">
+      <div class="emoji-cat">😊 Smileys</div>
+      <div class="emoji-grid">
         <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😀')">😀</button>
         <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😂')">😂</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🤣')">🤣</button>
         <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😍')">😍</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🥰')">🥰</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😊')">😊</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😉')">😉</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🤔')">🤔</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😎')">😎</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🥺')">🥺</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😢')">😢</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😅')">😅</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🙏')">🙏</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🤗')">🤗</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🥳')">🥳</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😴')">😴</button>
+      </div>
+      <div class="emoji-cat">👍 Reactions</div>
+      <div class="emoji-grid">
         <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('👍')">👍</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('👎')">👎</button>
         <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('👏')">👏</button>
-        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🎉')">🎉</button>
-        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('💡')">💡</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🙌')">🙌</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('💪')">💪</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🤝')">🤝</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🫶')">🫶</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('❤️')">❤️</button>
+      </div>
+      <div class="emoji-cat">✨ Symbols</div>
+      <div class="emoji-grid">
         <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('✅')">✅</button>
         <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('❌')">❌</button>
-        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🤔')">🤔</button>
-        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('😊')">😊</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('⚠️')">⚠️</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('💡')">💡</button>
         <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🚀')">🚀</button>
         <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('⭐')">⭐</button>
         <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🔥')">🔥</button>
-        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('💬')">💬</button>
         <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('✨')">✨</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🎉')">🎉</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('💯')">💯</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🎯')">🎯</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('💬')">💬</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('📌')">📌</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('📚')">📚</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('📝')">📝</button>
+        <button class="emoji-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="insertEmoji('🎓')">🎓</button>
       </div>
     </div>
-    <!-- Format Toolbar -->
+    <!-- Format Toolbar — Enhanced with 5 powerful new tools -->
     <div id="chat-toolbar">
       <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="applyFormat('bold')" title="Bold">
         <strong>B</strong>
@@ -397,9 +452,37 @@
       <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="applyFormat('number')" title="Numbered List">
         1.
       </button>
+      <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="applyFormat('quote')" title="Quote / Block">
+        ❝
+      </button>
+      <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="applyFormat('code')" title="Inline Code">
+        &lt;/&gt;
+      </button>
       <div class="divider-toolbar"></div>
+      <!-- 🎤 Voice input -->
+      <button class="format-btn" id="chat-mic-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="toggleChatMic()" title="Voice Input">
+        🎤
+      </button>
+      <!-- 😊 Emoji picker -->
       <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="toggleEmojiPicker()" title="Emoji Picker">
         😊
+      </button>
+      <!-- ✨ Quick Improve: AI cleans up grammar -->
+      <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="quickImproveText()" title="✨ AI: Improve grammar">
+        ✨
+      </button>
+      <!-- 🌐 Translate input -->
+      <button class="format-btn" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="quickTranslateInput()" title="🌐 Translate EN ↔ HI">
+        🌐
+      </button>
+      <div class="divider-toolbar"></div>
+      <!-- 🗑 Clear input -->
+      <button class="format-btn danger" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="clearChatInput()" title="Clear input">
+        🗑
+      </button>
+      <!-- 🔄 Clear chat history -->
+      <button class="format-btn danger" onmousedown="event.preventDefault()" ontouchstart="event.preventDefault()" onclick="clearChatHistory()" title="Clear chat history">
+        🔄
       </button>
     </div>
     <div id="chat-input-row">
@@ -2813,6 +2896,24 @@ Rules:
         cursorOffset = formatted.length;
         break;
       }
+      case 'quote': {
+        // Markdown blockquote
+        const needsNewline = before.length && !before.endsWith('\n');
+        if (selected) {
+          formatted = selected.split('\n').map(l => '> ' + l).join('\n');
+          if (needsNewline) formatted = '\n' + formatted;
+        } else {
+          formatted = (needsNewline ? '\n' : '') + '> ';
+        }
+        cursorOffset = formatted.length;
+        break;
+      }
+      case 'code': {
+        // Inline code with backticks
+        formatted = selected ? '`' + selected + '`' : '``';
+        cursorOffset = selected ? formatted.length : 1;
+        break;
+      }
     }
 
     inp.value = before + formatted + after;
@@ -2820,6 +2921,158 @@ Rules:
     const newPos = start + cursorOffset;
     inp.selectionStart = inp.selectionEnd = newPos;
     autoR(inp);
+  }
+
+  // ====== NEW CHAT TOOLS ======
+  // 🗑 Clear current input
+  function clearChatInput() {
+    const inp = document.getElementById('chat-inp');
+    if (!inp.value) return;
+    inp.value = '';
+    autoR(inp);
+    inp.focus();
+  }
+
+  // 🔄 Clear chat history (with confirmation)
+  function clearChatHistory() {
+    if (!confirm('Clear all chat messages? This cannot be undone.')) return;
+    const list = document.getElementById('msg-list');
+    if (list) list.innerHTML = '';
+    if (typeof history !== 'undefined' && Array.isArray(history)) history.length = 0;
+    addMsg('bot', 'Chat cleared! 🧹\n\nHow can I help you with English grammar?');
+  }
+
+  // ✨ Quick Improve — sends current input to AI for grammar correction
+  async function quickImproveText() {
+    const inp = document.getElementById('chat-inp');
+    const text = (inp.value || '').trim();
+    if (!text) { alert('Type something first to improve.'); return; }
+    inp.value = '✨ Improving...';
+    inp.disabled = true;
+    try {
+      const reply = await callAI([
+        { role: 'system', content: 'You are a grammar editor. Return ONLY the corrected version of the user text. Fix grammar, spelling, and clarity. No explanations, no preamble, just the corrected text.' },
+        { role: 'user', content: text }
+      ], 800);
+      inp.value = (reply || text).trim();
+      autoR(inp);
+    } catch(e) {
+      inp.value = text;
+      alert('Could not improve: ' + e.message);
+    } finally {
+      inp.disabled = false;
+      inp.focus();
+    }
+  }
+
+  // 🌐 Translate input — auto-detects EN ↔ HI
+  async function quickTranslateInput() {
+    const inp = document.getElementById('chat-inp');
+    const text = (inp.value || '').trim();
+    if (!text) { alert('Type something first to translate.'); return; }
+    // Detect Hindi by checking for Devanagari characters
+    const isHindi = /[\u0900-\u097F]/.test(text);
+    const target = isHindi ? 'English' : 'Hindi';
+    inp.value = '🌐 Translating to ' + target + '...';
+    inp.disabled = true;
+    try {
+      const reply = await callAI([
+        { role: 'system', content: 'You are a translator. Return ONLY the ' + target + ' translation, nothing else. No explanations.' },
+        { role: 'user', content: text }
+      ], 800);
+      inp.value = (reply || text).trim();
+      autoR(inp);
+    } catch(e) {
+      inp.value = text;
+      alert('Could not translate: ' + e.message);
+    } finally {
+      inp.disabled = false;
+      inp.focus();
+    }
+  }
+
+  // 🎤 Voice input for chat (uses same engine as paragraph)
+  let chatRecognition  = null;
+  let chatListening    = false;
+  let chatFinalText    = '';
+  let chatRestartTimer = null;
+
+  function toggleChatMic() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice input is not supported on this browser. Use Chrome on Android or desktop.');
+      return;
+    }
+    if (chatListening) stopChatMic(); else startChatMic();
+  }
+
+  function startChatMic() {
+    if (chatListening) return;
+    chatFinalText = document.getElementById('chat-inp').value;
+    if (chatFinalText && !chatFinalText.endsWith(' ')) chatFinalText += ' ';
+    chatListening = true;
+    setChatMicUI(true);
+    _startChatRecognizer();
+  }
+
+  function _startChatRecognizer() {
+    clearTimeout(chatRestartTimer);
+    if (chatRecognition) { try { chatRecognition.abort(); } catch(e){} chatRecognition = null; }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    chatRecognition = new SR();
+    chatRecognition.continuous     = true;
+    chatRecognition.interimResults = true;
+    chatRecognition.lang           = 'en-IN';
+    const inp = document.getElementById('chat-inp');
+    chatRecognition.onresult = (e) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) chatFinalText += e.results[i][0].transcript + ' ';
+        else interim += e.results[i][0].transcript;
+      }
+      inp.value = chatFinalText + interim;
+      autoR(inp);
+    };
+    chatRecognition.onerror = (e) => {
+      if (e.error === 'no-speech' || e.error === 'aborted') return;
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        chatListening = false;
+        setChatMicUI(false);
+        alert('Microphone permission denied.');
+        return;
+      }
+    };
+    chatRecognition.onend = () => {
+      if (!chatListening) return;
+      chatRestartTimer = setTimeout(() => { if (chatListening) _startChatRecognizer(); }, 350);
+    };
+    try { chatRecognition.start(); } catch(e) {}
+  }
+
+  function stopChatMic() {
+    chatListening = false;
+    clearTimeout(chatRestartTimer);
+    if (chatRecognition) { try { chatRecognition.abort(); } catch(e){} chatRecognition = null; }
+    document.getElementById('chat-inp').value = chatFinalText.trimEnd();
+    setChatMicUI(false);
+    autoR(document.getElementById('chat-inp'));
+  }
+
+  function setChatMicUI(isOn) {
+    const btn = document.getElementById('chat-mic-btn');
+    if (!btn) return;
+    if (isOn) {
+      btn.style.background = 'linear-gradient(135deg,#ef4444,#dc2626)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = 'transparent';
+      btn.innerHTML = '🔴';
+      btn.title = 'Stop voice';
+    } else {
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+      btn.innerHTML = '🎤';
+      btn.title = 'Voice input';
+    }
   }
 
   function toggleEmojiPicker() {
